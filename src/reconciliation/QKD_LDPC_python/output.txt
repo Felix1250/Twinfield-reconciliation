@@ -1,0 +1,2 @@
+code_n, n_tries, qber, f_mean, com_iters_mean, R, s_n, p_n, p_n_max, k_n, discl_n, FER 
+1944,2,  0.2000,    1.10752660,    3.00000000,    0.50000000,       597,         0,       439,          1347,        35,    0.00000000
