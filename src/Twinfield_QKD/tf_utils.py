@@ -179,6 +179,21 @@ def possoin_graph(mu = 2.1):
 
 #possoin_graph()
 
+def plob():
+    a = []
+    for i in range(10):
+        loss_db_per_km = 0.2
+        distance = i*50  # km
+        total_loss_db = loss_db_per_km * distance
+        a.append(−log(1-total_loss_db))
+
+    plt.plot(a,label="plob")
+    plt.yscale('log')
+    plt.show()
+
+plob()
+
+
 def shannon_entr(x):
     return -x * math.log2(x) - (1-x) * math.log2(1-x)
 
@@ -191,4 +206,7 @@ def secure_key_rate(N_bits,n_1,n_t,eph,f,E_t):
     eph is the phase flip rate
     E_t is the bit lflip rate
     '''
-    R = 1/N_bits*(n_1*(1-shannon_entr(eph)) - f * n_t * shannon_entr(E_t))
+    R_tail = 1/N_bits *(2*math.log2(2/e_cor) + 4 * math.log2(1/(math.sqrt(2) *e_pa * e_hat)) + 2 * math.log2(n_vy + n_yv))
+
+    R = 1/N_bits*(n_1*(1-shannon_entr(eph)) - f * n_t * shannon_entr(E_t)) - R_tail
+    return R

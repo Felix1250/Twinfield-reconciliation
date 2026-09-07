@@ -131,13 +131,14 @@ def encode_syndrome(x, s_y_joins):
     return np.array(s)
 
 
-def decode_syndrome_minLLR(y, s, s_y_joins, y_s_joins, qber_est, s_pos, p_pos, k_pos, r_start=None, max_iter=300, x=None, show=1, discl_n=20, n_iter_avg_window=5):
+def decode_syndrome_minLLR(y, s, s_y_joins, y_s_joins, qber_est, qber_est_0, s_pos, p_pos, k_pos, r_start=None, max_iter=300, x=None, show=1, discl_n=20, n_iter_avg_window=5):
     """
     INPUT
     'y' is decoding vector. 
     's' is syndrome.
     's_y_joins' and 'y_s_joins' is parity-check matrix information.
-    'qber_est' is an estimated level of QBER.
+    'qber_est' is an estimated level of QBER (the bitflip probability from 1 to 0) (detected something, but was wrong , both sides sent)
+    'qber_est_0' is mostly the dark count rate ( the bitflip probability from 0 to 1)
     's_pos'/'p_pos'/'k_pos' stands for positions of shortened/punctured/key bits.
     'r_start' is vector of predefined LLRs.
     'max_iter' is maximal number of iterations in the general cycle.
@@ -251,7 +252,12 @@ def decode_syndrome_minLLR(y, s, s_y_joins, y_s_joins, qber_est, s_pos, p_pos, k
             r[s_pos] = (1-2*y[s_pos])*1000
         if p_n > 0:
             r[p_pos] = 0
-        r[k_pos] = (1-2*y[k_pos])*np.log((1-qber_est)/qber_est)
+        #r[k_pos] = (1-2*y[k_pos])*np.log((1-qber_est)/qber_est) # assumes that 0 and 1 are equally likely
+        r[k_pos] = np.where(
+            y[k_pos] == 0,
+            np.log((1 - qber_est_0) / qber_est),
+            np.log(qber_est_0 / (1 - qber_est))
+        )
     else:
         r = r_start
         if s_n > 0:
@@ -345,7 +351,7 @@ def decode_syndrome_minLLR(y, s, s_y_joins, y_s_joins, qber_est, s_pos, p_pos, k
     return None, minLLR_inds
 
 
-def perform_ec(x, y, s_y_joins, y_s_joins, qber_est, s_n, p_n, punct_list=None, discl_n=20, show=0):
+def perform_ec(x, y, s_y_joins, y_s_joins, qber_est,qber_est_0, s_n, p_n, punct_list=None, discl_n=20, show=0):
     n = len(y_s_joins)
     m = len(s_y_joins)
 
@@ -364,7 +370,7 @@ def perform_ec(x, y, s_y_joins, y_s_joins, qber_est, s_n, p_n, punct_list=None, 
 
     e_pat_in = generate_key_zeros(n)
 
-    e_pat, minLLR_inds = decode_syndrome_minLLR(e_pat_in, s_d, s_y_joins, y_s_joins, qber_est, s_pos,
+    e_pat, minLLR_inds = decode_syndrome_minLLR(e_pat_in, s_d, s_y_joins, y_s_joins, qber_est,qber_est_0, s_pos,
                                                 p_pos, k_pos, max_iter=100500, x=key_sum, show=show, discl_n=discl_n, n_iter_avg_window=5)
 
     add_info = 0
@@ -379,7 +385,7 @@ def perform_ec(x, y, s_y_joins, y_s_joins, qber_est, s_n, p_n, punct_list=None, 
         k_pos = list(set(k_pos) - set(minLLR_inds))
         if p_pos is not None:
             p_pos = list(set(p_pos) - set(minLLR_inds))
-        e_pat, minLLR_inds = decode_syndrome_minLLR(e_pat_in, s_d, s_y_joins, y_s_joins, qber_est, s_pos, p_pos,
+        e_pat, minLLR_inds = decode_syndrome_minLLR(e_pat_in, s_d, s_y_joins, y_s_joins, qber_est,qber_est_0, s_pos, p_pos,
                                                     k_pos, r_start=None, max_iter=100500, x=key_sum, show=show, discl_n=discl_n, n_iter_avg_window=5)
         add_info += discl_n
         com_iters += 1
@@ -418,7 +424,7 @@ def test_ec(qber, R_range, codes, n, n_tries, f_start=1, show=1, discl_k=1):
         x = generate_key(n-s_n-p_n)
         y = add_errors(x, qber)
         add_info, com_iters, x_dec, ver_check = perform_ec(
-            x, y, s_y_joins, y_s_joins, qber_est, s_n, p_n, punct_list=punct_list, discl_n=discl_n, show=show)
+            x, y, s_y_joins, y_s_joins, qber_est,0, s_n, p_n, punct_list=punct_list, discl_n=discl_n, show=show)
         f_cur = float(m-p_n+add_info)/(n-p_n-s_n)/h_b(qber)
         f_rslt.append(f_cur)
         com_iters_rslt.append(com_iters)
