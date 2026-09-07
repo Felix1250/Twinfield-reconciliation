@@ -62,7 +62,7 @@ def aopp(alice_key,bob_key):
             counter +=1
     print("---------------------------------------")
     print("length after aopp: " + str(aopp_length))
-    if len(orig_len) != 0:
-        print("percentage of original key: " + str(aopp_length/len(orig_len)))
+    if orig_len != 0:
+        print("percentage of original key: " + str(aopp_length/orig_len))
     tf_utils.print_error_rate(alice_key_aopp,bob_key_aopp)
     return alice_key_aopp,bob_key_aopp

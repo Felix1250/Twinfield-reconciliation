@@ -3,13 +3,98 @@ import numpy as np
 import math
 import strawberryfields as sf
 from strawberryfields import ops
+import multiprocessing as mp
 from tqdm import tqdm
 import datetime
+import gc
 
 
 import tf_utils
 import tensorflow as tf
 tf.get_logger().setLevel('ERROR')
+
+
+# --- Worker function MUST be defined at top-level for multiprocessing spawn/fork ---
+def _run_trial_worker(
+    queue,
+    length,
+    loss_1,
+    loss_2,
+    eta1,
+    eta2,
+    pd0,
+    pd1,
+    alice_p,
+    bob_p,
+    alice_A,
+    bob_A,
+):
+
+    prog = sf.Program(2)
+
+    phase_A = prog.params("alice_p")
+    phase_B = prog.params("bob_p")
+    amplitude_A = prog.params("alice_A")
+    amplitude_B = prog.params("bob_A")
+
+    theta = np.float32(np.pi / 4)
+    phi = np.float32(np.pi / 2)
+
+    with prog.context as q:
+        # State preparation
+        ops.Coherent(amplitude_A, phase_A) | q[0]
+        ops.Coherent(amplitude_B, phase_B) | q[1]
+
+        # Channel loss
+        if loss_1 > 0:
+            ops.LossChannel(loss_1) | q[0]
+            ops.LossChannel(loss_2) | q[1]
+
+        # Interference
+        ops.BSgate(theta, phi) | (q[0], q[1])
+
+        # Detection
+        ops.MeasureFock() | q
+
+    eng = sf.Engine(
+        "tf", backend_options={"batch_size": length, "cutoff_dim": 8}
+    )
+    result = eng.run(
+        prog,
+        args={
+            "alice_p": alice_p,
+            "bob_p": bob_p,
+            "alice_A": alice_A,
+            "bob_A": bob_A,
+        },
+    )
+
+    measures = np.empty((length, 2))
+    for i in range(length):
+        measures[i][0] = int(result.samples[i][0][0])
+        measures[i][1] = int(result.samples[i][0][1])
+
+    for j in range(length):
+        for i in range(int(measures[j][0])):
+            if random.random() > eta1:
+                measures[j][0] -= 1
+        for i in range(int(measures[j][1])):
+            if random.random() > eta2:
+                measures[j][1] -= 1
+
+        # Dark counts
+        if random.random() < pd0:
+            measures[j][0] += 1
+        if random.random() < pd1:
+            measures[j][1] += 1
+
+    del eng
+    del prog
+    tf.keras.backend.clear_session()
+
+    # Put the resulting matrix into the multiprocessing queue
+    queue.put(measures)
+
 
 class Twinfield:
     #variables for generating
@@ -39,14 +124,14 @@ class Twinfield:
     n_phaseSlice = 16 #number of phase slices
     s_phaseSlice = 1 /n_phaseSlice
 
-    batch_size = 512 # defines the size for each batch of single photon events
+    batch_size = 16000 # defines the size for each batch of single photon events
     n_percentage = 0.05
 
     #variables for export
     _error_rate = 0
     _emu1 = 0
     _emu2 = 0
-    _emu1 = 0
+    _emu3 = 0
     _ex1 = 0
     _ex2 = 0
     _decoy_length = 0
@@ -110,67 +195,43 @@ class Twinfield:
         qbits = [window_vector,bit_vector,phase_vector, amplitude_vector]
         return qbits
 
+    def run_trial(self, alice_bits, bob_bits, start, finish):
+        length = finish - start
 
+        # Extract slicing parameters cast to float32
+        alice_p = alice_bits[2][start:finish].astype(np.float32)
+        bob_p = bob_bits[2][start:finish].astype(np.float32)
+        alice_A = alice_bits[3][start:finish].astype(np.float32)
+        bob_A = bob_bits[3][start:finish].astype(np.float32)
 
-    def run_trial(cls,alice_bits,bob_bits,start,finish):
-        length = finish-start
-        prog = sf.Program(2)
+        # Create inter-process queue to retrieve trial data
+        ctx = mp.get_context("spawn")
+        queue = ctx.Queue()
 
-        phase_A = prog.params("alice_p")
-        phase_B = prog.params("bob_p")
-        amplitude_A = prog.params("alice_A")
-        amplitude_B = prog.params("bob_A")
+        # Run backend code in an isolated process
+        p = ctx.Process(
+            target=_run_trial_worker,
+            args=(
+                queue,
+                length,
+                self.loss_1,
+                self.loss_2,
+                self.eta1,
+                self.eta2,
+                self.pd0,
+                self.pd1,
+                alice_p,
+                bob_p,
+                alice_A,
+                bob_A,
+            ),
+        )
+        p.start()
 
-        theta = np.float32(np.pi / 4)
-        phi = np.float32(np.pi / 2)
+        # Get results and ensure process termination
+        measures = queue.get()
+        p.join()
 
-        with prog.context as q:
-            # State preparation
-
-            ops.Coherent(amplitude_A, phase_A) | q[0]
-            ops.Coherent(amplitude_B, phase_B) | q[1]
-
-
-            # Channel loss
-            if cls.loss_1 > 0:
-                ops.LossChannel(cls.loss_1) | q[0]
-                ops.LossChannel(cls.loss_2) | q[1]
-
-            # Interference
-            ops.BSgate(theta,phi) | (q[0], q[1]) 
-
-            # Detection
-            ops.MeasureFock() | q
-
-        #eng = sf.Engine("fock", backend_options={"cutoff_dim": 10}) # use fock to access single Photons
-        eng = sf.Engine("tf", backend_options={
-            "batch_size": length, 
-            "cutoff_dim": 8
-        })
-        result = eng.run(prog, args={
-            "alice_p": alice_bits[2][start:finish].astype(np.float32),
-            "bob_p": bob_bits[2][start:finish].astype(np.float32),
-            "alice_A":alice_bits[3][start:finish].astype(np.float32),
-            "bob_A":bob_bits[3][start:finish].astype(np.float32),
-        })
-
-        measures = np.empty((length, 2))
-        for i in range(length):
-            measures[i][0]=int(result.samples[i][0][0])
-            measures[i][1]=int(result.samples[i][0][1])
-        for j in range(length):
-            for i in range(int(measures[j][0])):
-                if random.random() > cls.eta1:
-                    measures[j][0] -= 1
-            for i in range(int(measures[j][1])):
-                if random.random() > cls.eta2:
-                    measures[j][1] -= 1
-
-            # dark counts. is an additional photon
-            if random.random() < cls.pd0:
-                measures[j][0] += 1
-            if random.random() < cls.pd1:
-                measures[j][1] += 1
         return measures
 
 
@@ -203,7 +264,6 @@ class Twinfield:
         print("Error rate of subset: " + str(Ez))
         print("---------------------------------------")
         return arr,Ez
-
 
     def calc_ex(cls,alice_bits,bob_bits,decoy_bits):
         if len(decoy_bits) == 0:
@@ -264,10 +324,6 @@ class Twinfield:
             print("warning! not enough decoy window data.")
             print("---------------------------------------")
         
-
-
-
-
     def aftercomm(cls,alice_bits,bob_bits,measures,length,psi_AB):
         cls.s_phaseSlice = 1* math.pi /cls.n_phaseSlice
         print("s phase",str(cls.s_phaseSlice))
@@ -323,52 +379,25 @@ class Twinfield:
                 bob_key[i] = 1
         cls._error_rate ,cls._error_number= tf_utils.print_error_rate(alice_key,bob_key)
         print("error rate" + str(cls._error_rate))
-        tf_utils.make_heatmap(measures,"figures/heatmap.png")
+        tf_utils.make_heatmap(measures,"figures/heatmap.png")    
 
-        #take some random bits and do some error analysis
-    
-
-        # Active odd parity paring 
-        pairs = tf_utils.map_pairs(len(signal_bits))
-        #bit mask that if = 1 keeps the bit
-        drop_bits = np.zeros(len(signal_bits))
-        for i in tqdm(range(len(pairs)),"odd parity paring"):
-            parity_alice = (alice_key[pairs[i][0]] + alice_key[pairs[i][1]]) % 2
-            parity_bob = (bob_key[pairs[i][0]] + bob_key[pairs[i][1]]) % 2
-            #stupid ass debug
-            #if bob_key[pairs[i][0]] != alice_key[pairs[i][0]] and bob_key[pairs[i][1]] != alice_key[pairs[i][1]]:
-            #    print("i am an error")
-            #    print("parity alice: " + str(parity_alice))
-            #    print("parity bob: " + str(parity_bob))
-
-            if parity_bob == parity_alice:
-                select_bit = random.randint(0,1)
-                drop_bits[pairs[i][select_bit]] = 1
-        aopp_length = np.count_nonzero(drop_bits)
-        alice_key_aopp = np.zeros(aopp_length)
-        bob_key_aopp=  np.zeros(aopp_length)
-        counter = 0
-        for i in range(len(drop_bits)):
-            if drop_bits[i] == 1:
-                alice_key_aopp[counter]= alice_key[i]
-                bob_key_aopp[counter]= bob_key[i]
-                counter +=1
-        print("---------------------------------------")
-        print("length after aopp: " + str(aopp_length))
-        if len(signal_bits) != 0:
-            print("percentage of original key: " + str(aopp_length/len(signal_bits)))
-        tf_utils.print_error_rate(alice_key_aopp,bob_key_aopp)
+        return alice_key, bob_key
         
-
     def tf_communicate(cls,alice_seed, bob_seed,length,path = "temp.npz"):
         alice_bits = cls.generate_random_Qbits(alice_seed,length)
         bob_bits = cls.generate_random_Qbits(bob_seed,length)
         psi_AB = cls.generate_random_phaseShift(length)
         #asprint("generated all the random numbers")
-        measures = np.empty((0, 2))
+        measures = np.empty((length, 2))
         for i in tqdm(range(math.ceil(length/cls.batch_size)),"twinflied"): 
             temp =cls.run_trial(alice_bits,bob_bits,i*cls.batch_size,min((i+1)*cls.batch_size,length))
-            measures = np.concatenate((measures, temp), axis=0)
+            #measures = np.concatenate((measures, temp), axis=0)
+            measures[i*cls.batch_size:min((i+1)*cls.batch_size, length)] = temp
+
+            if i % 100 == 0: #garbage collection every 100 batches to avoid memory issues
+                tf.keras.backend.clear_session()
+                tf.compat.v1.reset_default_graph()
+                gc.collect()
         
         sent_photons =sum(alice_bits[3]) + sum(bob_bits[3])
         rec_photons = tf_utils.make_heatmap(measures,"figures/heatmap3.png")
@@ -386,7 +415,7 @@ class Twinfield:
 
     def tf_communicat_load(cls,path="temp.npz"):
         data = np.load(path)
-        cls.aftercomm(data["first"],data["second"],data["third"],data["fourth"],data["fifth"])
+        return cls.aftercomm(data["first"],data["second"],data["third"],data["fourth"],data["fifth"])
     
     def tf_communicate_load_settings(cls, path = "temp.npz"):
         data = np.load(path)

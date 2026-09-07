@@ -3,6 +3,16 @@ import tf_utils
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
+
+sys.path.append("/home/felix/QKD_felix/src/Twinfield_QKD")
+sys.path.append("/home/felix/QKD_felix/src/reconciliation/QKD_LDPC_python")
+
+import tf_utils
+import twinfield_communication_tensorflow
+import aopp
+import ldpc
+
 
 
 def graph_phase_slices(savepath,loadpath = "saves/only_decoy_temp.npz",generate = False):
@@ -58,12 +68,13 @@ def graph_losses(savepath,generate = False):
     twin =twinfield_communication_tensorflow.Twinfield()
     
     if generate:
-        length = 100000
-        for i in range(11):
-            loss_db_per_km = 0.3
+        length = 10000000
+        for i in range(5,8):
+            loss_db_per_km = 0.2
             distance = i*50  # km
             total_loss_db = loss_db_per_km * distance  # 30 dB
-
+            twin.eta1 = 0.3
+            twin.eta2 = 0.3
             transmittance = 10 ** (-total_loss_db / 10)
             twin.loss_1 = transmittance
             twin.loss_2 = transmittance
@@ -72,21 +83,57 @@ def graph_losses(savepath,generate = False):
             twin.tf_communicate(tf_utils.generate_seed(),tf_utils.generate_seed(),length,loadpath)
             
     
-    signal_lengths = []
-    error_rate = []
+    signal_lengths = np.zeros((8,3))
+    error_rate = np.zeros((8,3))
+    key_rate = np.zeros((8,3))
+    plob = np.zeros(8)
     x = []
     y = []
-    for i in range(11):
+    for i in range(8):
         loadpath = "saves/distance/distance_" + str(i) + ".npz"
         twin.tf_communicate_load_settings(loadpath)
-        x.append(i*50)
+        x.append(i*100)
         y.append(i)
-        twin.tf_communicat_load(loadpath)
-        signal_lengths.append(twin._signal_length)
-        if twin._error_rate == None:
-            error_rate.append(1)
+
+        loss_db_per_km = 0.2
+        distance = i*50  # km
+        total_loss_db = loss_db_per_km * distance  # 30 dB
+        twin.eta1 = 0.3
+        twin.eta2 = 0.3
+        transmittance = 10 ** (-total_loss_db / 10)
+    
+        if transmittance < 1:
+            loss_db_per_km = 0.2
+            distance = i*100  # km
+            total_loss_db = loss_db_per_km * distance  # 30 dB
+            twin.eta1 = 0.3
+            twin.eta2 = 0.3
+            transmittance = 10 ** (-total_loss_db / 10)
+            plob[i] = - math.log2(1-transmittance)
         else:
-            error_rate.append(twin._error_rate)
+            plob[i] = 1
+
+        alice_key, bob_key = twin.tf_communicat_load(loadpath)
+        
+        disclosed_info = 0
+        signal_lengths[i][0] = len(alice_key)- disclosed_info
+        if len(alice_key) > 0:
+            error_rate[i][0] = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))
+        key_rate[i][0] = (len(alice_key)- disclosed_info)/twin._N_pulses
+
+        alice_key, bob_key = aopp.aopp(alice_key, bob_key)
+        signal_lengths[i][1] = len(alice_key)- disclosed_info
+        if len(alice_key) > 0:
+            error_rate[i][1] = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))
+        key_rate[i][1] = (len(alice_key)- disclosed_info)/twin._N_pulses
+
+
+        if np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int))) > 0:
+            alice_key, bob_key,disclosed_info = ldpc.ldpc(alice_key, bob_key, np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int))))
+        signal_lengths[i][2] = len(alice_key)- disclosed_info
+        if len(alice_key) > 0:
+            error_rate[i][2] = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))
+        key_rate[i][2] = (len(alice_key)- disclosed_info)/twin._N_pulses
  
 
 
@@ -109,6 +156,27 @@ def graph_losses(savepath,generate = False):
 
     plt.tight_layout()
     plt.savefig(savepath, dpi=300)
+
+    plt.close()
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax.plot(key_rate[0], label="pre reconciliation")
+    ax.plot(key_rate[1], label="aopp")
+    ax.plot(key_rate[2], label="aopp + ldpc")
+    ax.plot(plob, label="PLOB")
+    #cbar = fig.colorbar(im, ax=ax)
+    #cbar.set_label("Key Rate")
+    plt.title("Key Rate")
+    plt.xlabel("distance in km")
+    plt.ylabel("key rate")
+    plt.yscale('log')
+
+    ax.set_xticks(np.arange(len(x)))
+    ax.set_xticklabels(x)
+    plt.tight_layout()
+    plt.savefig("figures/my_graph/key_rate_distance.png", dpi=300, bbox_inches="tight")
+    plt.close()
+
 
 
 def graph_eta(savepath,generate = False):
@@ -202,7 +270,7 @@ def graph_psi(savepath,generate = False):
     ax1.tick_params(axis='y', labelcolor='red')
 
     #ax2 = ax1.twinx()  
-#
+
     #ax2.bar(y, signal_lengths, width=0.6, color='skyblue', alpha=0.5, label='key size', zorder=1)
     #ax2.set_ylabel('error rate', color='blue', fontsize=12)
     #ax2.tick_params(axis='y', labelcolor='blue')
@@ -232,13 +300,13 @@ def both(generate= False):
     twin.tf_communicat_load("saves/both.npz")
     twin.tf_communicat_load("saves/both.npz")
 
-
-#loadpath = "saves/only_decoy_temp.npz"
-#graph_phase_slices("figures/my_graph/phase_slices.png",generate=False)
-#graph_losses("figures/my_graph/errorrate per distance.png",generate=True)
-#graph_eta("figures/my_graph/errorrate per eta.png",generate=False)
-#just_signal(generate=True)
-both(generate=False)
-#graph_psi("figures/my_graph/errorrate per psi.png",generate=False)
-#twin =twinfield_communication_tensorflow.Twinfield()
-#twin.tf_communicat_load(loadpath)
+if __name__ == '__main__':
+    #loadpath = "saves/only_decoy_temp.npz"
+    #graph_phase_slices("figures/my_graph/phase_slices.png",generate=False)
+    graph_losses("figures/my_graph/errorrate per distance2.png",generate=False)
+    #graph_eta("figures/my_graph/errorrate per eta.png",generate=False)
+    #just_signal(generate=True)
+    #both(generate=False)
+    #graph_psi("figures/my_graph/errorrate per psi.png",generate=False)
+    #twin =twinfield_communication_tensorflow.Twinfield()
+    #twin.tf_communicat_load(loadpath)

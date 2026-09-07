@@ -50,7 +50,7 @@ def make_heatmap(array,path):
     count_photons = 0
     for i in range(len(array)):
         count_photons+= array[i][0] + array[i][1]
-    print("measured photons: " + str(count_photons))
+    #print("measured photons: " + str(count_photons))
 
 
 
@@ -84,7 +84,6 @@ def make_heatmap(array,path):
     plt.ylabel("Photons on side D1")
     fig.tight_layout()
     plt.savefig(path)
-    plt.close()
 
     return count_photons
     #plt.show()
@@ -177,6 +176,51 @@ def possoin_graph(mu = 2.1):
     #ax.set_yticks([])
     plt.show()
 
+def possoin_graph2():
+    a= np.zeros((10,3))
+    mu_vals = [0,0.2,0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8]
+    pz_vals = ["0","1",">1"]
+    for j in range(10):
+        mu = 0.2*j
+        a[j][0] = math.pow(mu,0) / factorial(0) *math.pow(math.e,-mu)
+        a[j][1] = math.pow(mu,1) / factorial(1) *math.pow(math.e,-mu)
+        a[j][2] = 1- a[j][0] - a[j][1]
+            
+    fig, ax = plt.subplots(figsize=(8, 6))
+    im = ax.imshow(a, cmap="autumn_r", interpolation="nearest")
+    #https://matplotlib.org/stable/users/explain/colors/colormaps.html
+    cbar = fig.colorbar(im, ax=ax)
+    cbar.set_label("Probability")
+    ax.set_title("probability of getting n photons for certain \u03bc")
+    ax.set_xlabel("n")
+    ax.set_ylabel("\u03bc")
+
+    # Replace mu_vals and pz_vals with your actual axis array variables
+    ax.set_yticks(np.arange(len(mu_vals)))
+    ax.set_yticklabels(mu_vals)
+    ax.set_xticks(np.arange(len(pz_vals)))
+    ax.set_xticklabels(pz_vals)
+
+    threshold = (a.max() + a.min()) / 2
+    for i in range(a.shape[0]):
+        for j in range(a.shape[1]):
+            val = a[i, j]
+            color = "white" if val > threshold else "black"
+            ax.text(
+                j,
+                i,
+                f"{val:.2f}",
+                ha="center",
+                va="center",
+                color=color,
+                fontsize=8,
+            )
+
+    plt.tight_layout()
+    plt.savefig("figures/my_graph/possoin.png", dpi=300, bbox_inches="tight")
+    plt.close()
+
+possoin_graph2()
 #possoin_graph()
 
 def plob():
