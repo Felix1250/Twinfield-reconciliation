@@ -223,19 +223,6 @@ def possoin_graph2():
 possoin_graph2()
 #possoin_graph()
 
-def plob():
-    a = []
-    for i in range(10):
-        loss_db_per_km = 0.2
-        distance = i*50  # km
-        total_loss_db = loss_db_per_km * distance
-        a.append(−log(1-total_loss_db))
-
-    plt.plot(a,label="plob")
-    plt.yscale('log')
-    plt.show()
-
-plob()
 
 
 def shannon_entr(x):

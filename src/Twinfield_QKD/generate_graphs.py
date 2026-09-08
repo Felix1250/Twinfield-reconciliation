@@ -7,6 +7,7 @@ import sys
 
 sys.path.append("/home/felix/QKD_felix/src/Twinfield_QKD")
 sys.path.append("/home/felix/QKD_felix/src/reconciliation/QKD_LDPC_python")
+sys.path.append("/home/felix/QKD_felix/src/reconciliation")
 
 import tf_utils
 import twinfield_communication_tensorflow
@@ -83,9 +84,9 @@ def graph_losses(savepath,generate = False):
             twin.tf_communicate(tf_utils.generate_seed(),tf_utils.generate_seed(),length,loadpath)
             
     
-    signal_lengths = np.zeros((8,3))
-    error_rate = np.zeros((8,3))
-    key_rate = np.zeros((8,3))
+    signal_lengths = np.zeros((3,8))
+    error_rate = np.zeros((3,8))
+    key_rate = np.zeros((3,8))
     plob = np.zeros(8)
     x = []
     y = []
@@ -116,48 +117,51 @@ def graph_losses(savepath,generate = False):
         alice_key, bob_key = twin.tf_communicat_load(loadpath)
         
         disclosed_info = 0
-        signal_lengths[i][0] = len(alice_key)- disclosed_info
+        signal_lengths[0][i] = len(alice_key)- disclosed_info
         if len(alice_key) > 0:
-            error_rate[i][0] = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))
-        key_rate[i][0] = (len(alice_key)- disclosed_info)/twin._N_pulses
-
+            error_rate[0][i] = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))
+        key_rate[0][i] = (len(alice_key)- disclosed_info)/twin._N_pulses
+        print("-----------------------aopp------------------------------------")
         alice_key, bob_key = aopp.aopp(alice_key, bob_key)
-        signal_lengths[i][1] = len(alice_key)- disclosed_info
+        signal_lengths[1][i] = len(alice_key)- disclosed_info
         if len(alice_key) > 0:
-            error_rate[i][1] = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))
-        key_rate[i][1] = (len(alice_key)- disclosed_info)/twin._N_pulses
-
+            error_rate[1][i] = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))
+        key_rate[1][i] = (len(alice_key)- disclosed_info)/twin._N_pulses
+        print("-----------------------ldpc------------------------------------")
 
         if np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int))) > 0:
-            alice_key, bob_key,disclosed_info = ldpc.ldpc(alice_key, bob_key, np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int))))
-        signal_lengths[i][2] = len(alice_key)- disclosed_info
+            alice_key, bob_key,disclosed_info = ldpc.ldpc(alice_key, bob_key, np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int))),twin.pd0)
+        signal_lengths[2][i] = len(alice_key)- disclosed_info
         if len(alice_key) > 0:
-            error_rate[i][2] = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))
-        key_rate[i][2] = (len(alice_key)- disclosed_info)/twin._N_pulses
+            error_rate[2][i] = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))
+        key_rate[2][i] = (len(alice_key)- disclosed_info)/twin._N_pulses
  
+    np.savez("/home/felix/QKD_felix/saves/graph data/plob.npz",
+            first=error_rate,
+            second=signal_lengths,
+            third=key_rate,)
 
+    #fig, ax1 = plt.subplots(figsize=(8, 5))
 
-    fig, ax1 = plt.subplots(figsize=(8, 5))
+    #ax1.plot(y, error_rate, color='red', marker='o', linestyle='-', linewidth=2, label='error rate', zorder=3)
+    #ax1.set_xlabel('Distance in km', fontsize=12) # Shared X label
+    #ax1.set_ylabel('number of decoy bits', color='red', fontsize=12)
+    #ax1.tick_params(axis='y', labelcolor='red')
 
-    ax1.plot(y, error_rate, color='red', marker='o', linestyle='-', linewidth=2, label='error rate', zorder=3)
-    ax1.set_xlabel('Distance in km', fontsize=12) # Shared X label
-    ax1.set_ylabel('number of decoy bits', color='red', fontsize=12)
-    ax1.tick_params(axis='y', labelcolor='red')
+    #ax2 = ax1.twinx()  
 
-    ax2 = ax1.twinx()  
+    #ax2.bar(y, signal_lengths, width=0.6, color='skyblue', alpha=0.5, label='key size', zorder=1)
+    #ax2.set_ylabel('error rate', color='blue', fontsize=12)
+    #ax2.tick_params(axis='y', labelcolor='blue')
+    #ax1.set_xticklabels(x)
 
-    ax2.bar(y, signal_lengths, width=0.6, color='skyblue', alpha=0.5, label='key size', zorder=1)
-    ax2.set_ylabel('error rate', color='blue', fontsize=12)
-    ax2.tick_params(axis='y', labelcolor='blue')
-    ax1.set_xticklabels(x)
+    #ax1.set_zorder(ax2.get_zorder() + 1)
+    #ax1.patch.set_visible(False)
 
-    ax1.set_zorder(ax2.get_zorder() + 1)
-    ax1.patch.set_visible(False)
+    #plt.tight_layout()
+    #plt.savefig(savepath, dpi=300)
 
-    plt.tight_layout()
-    plt.savefig(savepath, dpi=300)
-
-    plt.close()
+    #plt.close()
 
     fig, ax = plt.subplots(figsize=(8, 6))
     ax.plot(key_rate[0], label="pre reconciliation")
@@ -173,6 +177,7 @@ def graph_losses(savepath,generate = False):
 
     ax.set_xticks(np.arange(len(x)))
     ax.set_xticklabels(x)
+    ax.legend()
     plt.tight_layout()
     plt.savefig("figures/my_graph/key_rate_distance.png", dpi=300, bbox_inches="tight")
     plt.close()

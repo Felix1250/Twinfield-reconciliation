@@ -3,7 +3,7 @@ import numpy as np
 from file_utils import codes_from_file
 from os import path
 
-def ldpc(correct_key,faulty_key,qber_est = 0.21):
+def ldpc(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0):
     #this loades a code from teh ieee codes with a length of 1944
     n_bits = 1934 #  number of bits
     f_start = 1.0 # starting efficiency
@@ -47,7 +47,7 @@ def ldpc(correct_key,faulty_key,qber_est = 0.21):
             correct_chunk = np.pad(correct_chunk, (0, pad_len), 'constant')
         
         add_info, com_iters, dec_chunk, ver_check = ec.perform_ec(
-            faulty_chunk, correct_chunk, s_y_joins, y_s_joins, qber_est, s_n, p_n, 
+            faulty_chunk, correct_chunk, s_y_joins, y_s_joins, qber_est,qber_est_0, s_n, p_n, 
             punct_list=punct_list, discl_n=discl_n, show=1
         )
 
