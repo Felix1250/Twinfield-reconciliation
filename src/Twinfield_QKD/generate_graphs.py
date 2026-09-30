@@ -308,7 +308,7 @@ def both(generate= False):
 if __name__ == '__main__':
     #loadpath = "saves/only_decoy_temp.npz"
     #graph_phase_slices("figures/my_graph/phase_slices.png",generate=False)
-    graph_losses("figures/my_graph/errorrate per distance2.png",generate=False)
+    graph_losses("figures/my_graph/errorrate per distance2.png",generate=True)
     #graph_eta("figures/my_graph/errorrate per eta.png",generate=False)
     #just_signal(generate=True)
     #both(generate=False)

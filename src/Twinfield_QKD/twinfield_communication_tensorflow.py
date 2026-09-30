@@ -7,10 +7,12 @@ import multiprocessing as mp
 from tqdm import tqdm
 import datetime
 import gc
+import sys
 
 
 import tf_utils
 import tensorflow as tf
+sys.path.append("/home/felix/QKD_felix/src/reconciliation")
 tf.get_logger().setLevel('ERROR')
 
 
@@ -98,8 +100,8 @@ def _run_trial_worker(
 
 class Twinfield:
     #variables for generating
-    pd0 = 0#math.pow(10,-50) #darkcount of each detector individually
-    pd1 = 0#math.pow(10,-50)
+    pd0 = 0#math.pow(10,-5) #darkcount of each detector individually
+    pd1 = 0#math.pow(10,-5)
 
     eta1 = 1#0.95 #detection efficiency of the detectors
     eta2 = 1#0.95 
@@ -234,8 +236,37 @@ class Twinfield:
 
         return measures
 
+    def calc_ez(cls,alice_key,bob_key,n,counter_signal_window):
+        if n > len(alice_key):
+            print("too many error test bits for key length")
+            return alice_key,bob_key
+        if n == 0:
+            return alice_key,bob_key
+        arr2 = np.arange(0,len(alice_key))
+        np.random.shuffle(arr2)
+        arr_test = arr2[:n]
+        arr = arr2[n:]
+        counter_NN = 0
+        counter_SN = 0
+        counter_SS = 0
+        for i in range(len(arr_test)):
+            if alice_key[arr_test[i]] == 1 and bob_key[arr_test[i]] == 1:
+                counter_SS += 1
+            elif alice_key[arr_test[i]] == 0 and bob_key[arr_test[i]] == 0:
+                counter_NN += 1     
+            else:
+                counter_SN += 1
+        print("---------------------------------------")
+        print("NN in signal window: " + str(counter_NN))
+        print("NS/SN in signal window: " + str(counter_SN/counter_signal_window))
+        print("SS in signal window: " + str(counter_SS/counter_signal_window))
+        Ez = (counter_NN + counter_SS) / n
+        print("Error rate of subset: " + str(Ez))
+        print("---------------------------------------")
+        return alice_key[arr],bob_key[arr]
 
-    def calc_ez(cls,alice_bits,bob_bits,signal_bits,n,counter_signal_window):
+
+    def calc_ez_old(cls,alice_bits,bob_bits,signal_bits,n,counter_signal_window):
         if n > len(signal_bits):
             print("too many error test bits for key length")
             return signal_bits, 0
@@ -249,10 +280,10 @@ class Twinfield:
         counter_SN = 0
         counter_SS = 0
         for i in range(len(arr2)):
-            if alice_bits[1][arr2[i][0]] == 1 and bob_bits[1][arr2[i][0]] == 1:
+            if alice_bits[1][arr2[i]] == 1 and bob_bits[1][arr2[i]] == 1:
                 counter_SS += 1
-                alice_bits[2][arr2[i][0]] - bob_bits[2][arr2[i][0]] < math.pi/2
-            elif alice_bits[1][arr2[i][0]] == 0 and bob_bits[1][arr2[i][0]] == 0:
+                alice_bits[2][arr2[i]] - bob_bits[2][arr2[i]] < math.pi/2
+            elif alice_bits[1][arr2[i]] == 0 and bob_bits[1][arr2[i]] == 0:
                 counter_NN += 1     
             else:
                 counter_SN += 1
@@ -324,7 +355,7 @@ class Twinfield:
             print("warning! not enough decoy window data.")
             print("---------------------------------------")
         
-    def aftercomm(cls,alice_bits,bob_bits,measures,length,psi_AB):
+    def aftercomm(cls,alice_bits,bob_bits,measures,length,psi_AB,aopp_enabled = False):
         cls.s_phaseSlice = 1* math.pi /cls.n_phaseSlice
         print("s phase",str(cls.s_phaseSlice))
         print("n phase",str(cls.n_phaseSlice))
@@ -359,16 +390,6 @@ class Twinfield:
         print("signal bits " + str(cls._signal_length))
         print("decoy bits: " + str(cls._decoy_length))
         
-
-
-        # do analysis on the signal window
-        n = max(1000, math.floor(len(signal_bits)*cls.n_percentage))
-        signal_bits, ez = cls.calc_ez(alice_bits,bob_bits,signal_bits,n,counter_signal_window)
-        if len(decoy_bits) > 0:
-            cls.calc_ex(alice_bits,bob_bits,decoy_bits)
-        else:
-            print("there are no decoy bits lol!")
-
         #generate keys
         alice_key = np.zeros(len(signal_bits))
         bob_key = np.zeros(len(signal_bits))
@@ -379,7 +400,20 @@ class Twinfield:
                 bob_key[i] = 1
         cls._error_rate ,cls._error_number= tf_utils.print_error_rate(alice_key,bob_key)
         print("error rate" + str(cls._error_rate))
-        tf_utils.make_heatmap(measures,"figures/heatmap.png")    
+        tf_utils.make_heatmap(measures,"figures/heatmap.png")  
+
+        if aopp_enabled:
+            alice_key, bob_key = aopp(alice_key,bob_key)
+        # do analysis on the signal window
+        n = max(1000, math.floor(len(alice_key)*cls.n_percentage))
+        alice_key,bob_key = cls.calc_ez(alice_key,bob_key,n,counter_signal_window)
+        # analyze the decoy window
+        if len(decoy_bits) > 0:
+            cls.calc_ex(alice_bits,bob_bits,decoy_bits)
+        else:
+            print("there are no decoy bits lol!")
+
+  
 
         return alice_key, bob_key
         

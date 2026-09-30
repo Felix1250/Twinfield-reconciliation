@@ -35,30 +35,24 @@ def make_odd_parity_pairs_old(key):
 
 
 def make_odd_parity_pairs(key):
-    # Convert input to a numpy array for boolean indexing
     key = np.asarray(key)
-    
-    # Separate indices into 0-value pool and 1-value pool - O(n)
+
     zeros = np.where(key == 0)[0]
     ones = np.where(key == 1)[0]
     
-    # Shuffle both pools in-place - O(n)
     np.random.shuffle(zeros)
     np.random.shuffle(ones)
     
-    # How many odd-parity pairs can we form guaranteed?
     num_odd_pairs = min(len(zeros), len(ones))
-    
-    # Pair up opposite bits - O(n)
+
     pairs = list(zip(zeros[:num_odd_pairs], ones[:num_odd_pairs]))
-    
-    # Gather remaining unused indices
-    remaining = np.concatenate([zeros[num_odd_pairs:], ones[num_odd_pairs:]])
-    np.random.shuffle(remaining)
-    
-    # Pair up remaining same-bit indices in pairs of 2 - O(n)
-    for i in range(0, len(remaining) - 1, 2):
-        pairs.append((remaining[i], remaining[i + 1]))
+
+    #remaining = np.concatenate([zeros[num_odd_pairs:], ones[num_odd_pairs:]])
+    #np.random.shuffle(remaining)
+    #
+    ## Pair up remaining same-bit indices in pairs of 2 - O(n)
+    #for i in range(0, len(remaining) - 1, 2):
+    #    pairs.append((remaining[i], remaining[i + 1]))
         
     return np.array(pairs)
 

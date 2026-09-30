@@ -131,7 +131,7 @@ def encode_syndrome(x, s_y_joins):
     return np.array(s)
 
 
-def decode_syndrome_minLLR(y, s, s_y_joins, y_s_joins, qber_est, qber_est_0, s_pos, p_pos, k_pos, r_start=None, max_iter=300, x=None, show=1, discl_n=20, n_iter_avg_window=5):
+def decode_syndrome_minLLR(y, s, s_y_joins, y_s_joins, qber_est, qber_est_0, s_pos, p_pos, k_pos, r_start=None, max_iter=300, x=None, show=1, discl_n=20, n_iter_avg_window=5,twinfield=True):
     """
     INPUT
     'y' is decoding vector. 
@@ -252,12 +252,14 @@ def decode_syndrome_minLLR(y, s, s_y_joins, y_s_joins, qber_est, qber_est_0, s_p
             r[s_pos] = (1-2*y[s_pos])*1000
         if p_n > 0:
             r[p_pos] = 0
-        #r[k_pos] = (1-2*y[k_pos])*np.log((1-qber_est)/qber_est) # assumes that 0 and 1 are equally likely
-        r[k_pos] = np.where(
-            y[k_pos] == 0,
-            np.log((1 - qber_est_0) / qber_est),
-            np.log(qber_est_0 / (1 - qber_est))
-        )
+        if twinfield:
+            r[k_pos] = np.where(
+                y[k_pos] == 0,
+                np.log((1 - qber_est_0) / qber_est),
+                np.log(qber_est_0 / (1 - qber_est))
+            )
+        else:
+            r[k_pos] = (1-2*y[k_pos])*np.log((1-qber_est)/qber_est) # assumes that 0 and 1 are equally likely
     else:
         r = r_start
         if s_n > 0:
@@ -351,7 +353,7 @@ def decode_syndrome_minLLR(y, s, s_y_joins, y_s_joins, qber_est, qber_est_0, s_p
     return None, minLLR_inds
 
 
-def perform_ec(x, y, s_y_joins, y_s_joins, qber_est,qber_est_0, s_n, p_n, punct_list=None, discl_n=20, show=0):
+def perform_ec(x, y, s_y_joins, y_s_joins, qber_est,qber_est_0, s_n, p_n, punct_list=None, discl_n=20, show=0,twinfield=True):
     n = len(y_s_joins)
     m = len(s_y_joins)
 
@@ -371,7 +373,7 @@ def perform_ec(x, y, s_y_joins, y_s_joins, qber_est,qber_est_0, s_n, p_n, punct_
     e_pat_in = generate_key_zeros(n)
 
     e_pat, minLLR_inds = decode_syndrome_minLLR(e_pat_in, s_d, s_y_joins, y_s_joins, qber_est,qber_est_0, s_pos,
-                                                p_pos, k_pos, max_iter=100500, x=key_sum, show=show, discl_n=discl_n, n_iter_avg_window=5)
+                                                p_pos, k_pos, max_iter=100500, x=key_sum, show=show, discl_n=discl_n, n_iter_avg_window=5,twinfield=twinfield)
 
     add_info = 0
     com_iters = 0
@@ -386,7 +388,7 @@ def perform_ec(x, y, s_y_joins, y_s_joins, qber_est,qber_est_0, s_n, p_n, punct_
         if p_pos is not None:
             p_pos = list(set(p_pos) - set(minLLR_inds))
         e_pat, minLLR_inds = decode_syndrome_minLLR(e_pat_in, s_d, s_y_joins, y_s_joins, qber_est,qber_est_0, s_pos, p_pos,
-                                                    k_pos, r_start=None, max_iter=100500, x=key_sum, show=show, discl_n=discl_n, n_iter_avg_window=5)
+                                                    k_pos, r_start=None, max_iter=100500, x=key_sum, show=show, discl_n=discl_n, n_iter_avg_window=5,twinfield=twinfield)
         add_info += discl_n
         com_iters += 1
 

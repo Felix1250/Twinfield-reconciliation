@@ -3,7 +3,7 @@ import numpy as np
 from file_utils import codes_from_file
 from os import path
 
-def ldpc(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0):
+def ldpc(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True):
     #this loades a code from teh ieee codes with a length of 1944
     n_bits = 1934 #  number of bits
     f_start = 1.0 # starting efficiency
@@ -39,6 +39,7 @@ def ldpc(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0):
     correct_blocks = [correct_key[i:i + payload_per_block] for i in range(0, len(correct_key), payload_per_block)]
 
     error_map = []
+    com_iters_counter = 0
     for faulty_chunk, correct_chunk in zip(faulty_blocks, correct_blocks):
         # If the last chunk is smaller, pad it with 0s
         if len(faulty_chunk) < payload_per_block:
@@ -48,10 +49,11 @@ def ldpc(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0):
         
         add_info, com_iters, dec_chunk, ver_check = ec.perform_ec(
             faulty_chunk, correct_chunk, s_y_joins, y_s_joins, qber_est,qber_est_0, s_n, p_n, 
-            punct_list=punct_list, discl_n=discl_n, show=1
+            punct_list=punct_list, discl_n=discl_n, show=1,twinfield=twinfield
         )
 
         disclosed_info += len(s_y_joins) - s_n +add_info
+        com_iters_counter += com_iters
         
         # Trim padding if last chunk was padded
         if len(faulty_chunk) > len(error_map_chunk := dec_chunk[:len(faulty_chunk) - pad_len if 'pad_len' in locals() else len(dec_chunk)]):
@@ -66,7 +68,7 @@ def ldpc(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0):
     remaining_errors = np.abs(corrected_key.astype(int) - correct_key.astype(int))
     print("Total remaining errors: " + str(np.sum(remaining_errors)))
     print("remaining errorrate: " + str(np.mean(remaining_errors)))
-    return correct_key,corrected_key, disclosed_info
+    return correct_key,corrected_key, disclosed_info, com_iters_counter
 
 #R_range = [0.5,2/3,3/4,1,4/5,70/71]
 #qber_est = 0.0000003
