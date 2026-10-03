@@ -245,7 +245,7 @@ class Twinfield:
         arr2 = np.arange(0,len(alice_key))
         np.random.shuffle(arr2)
         arr_test = arr2[:n]
-        arr = arr2[n:]
+        arr = arr2[len(alice_key)-n:]
         counter_NN = 0
         counter_SN = 0
         counter_SS = 0

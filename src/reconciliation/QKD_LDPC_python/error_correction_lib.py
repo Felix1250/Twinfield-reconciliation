@@ -375,7 +375,7 @@ def perform_ec(x, y, s_y_joins, y_s_joins, qber_est,qber_est_0, s_n, p_n, punct_
     e_pat, minLLR_inds = decode_syndrome_minLLR(e_pat_in, s_d, s_y_joins, y_s_joins, qber_est,qber_est_0, s_pos,
                                                 p_pos, k_pos, max_iter=100500, x=key_sum, show=show, discl_n=discl_n, n_iter_avg_window=5,twinfield=twinfield)
 
-    add_info = 0
+    add_info = p_n
     com_iters = 0
 
     while e_pat is None:
@@ -402,7 +402,7 @@ def perform_ec(x, y, s_y_joins, y_s_joins, qber_est,qber_est_0, s_n, p_n, punct_
     return add_info, com_iters, e_pat[k_pos_in], ver_check
 
 
-def test_ec(qber, R_range, codes, n, n_tries, f_start=1, show=1, discl_k=1):
+def test_ec(qber, R_range, codes, n, n_tries, f_start=1, show=1, discl_k=0): #discl_k = 1
     R, s_n, p_n = choose_sp(qber, f_start, R_range, n)
     k_n = n-s_n-p_n
     m = (1-R)*n

@@ -41,3 +41,25 @@ def codes_from_file(file_path):
             start_read_index = end_puct_list_index + 1
  
         return result	
+
+def print_available_code_ranges():
+    codes = codes_from_file("/home/felix/QKD_felix/src/reconciliation/QKD_LDPC_python/codes_4000.txt") 
+    n=4000
+    for code in codes:
+        
+        print("syndrome: ",codes[(code[0], n)]['syndrome_len'])
+        print("frame: ",codes[(code[0], n)]['frame_len'])
+        print("R: ",codes[(code[0], n)]['R'])
+        print("----------------------------------------")
+
+    codes = codes_from_file("/home/felix/QKD_felix/src/reconciliation/QKD_LDPC_python/codes_1944.txt") 
+    n=1944
+    for code in codes:
+        
+        print("syndrome: ",codes[(code[0], n)]['syndrome_len'])
+        print("frame: ",codes[(code[0], n)]['frame_len'])
+        print("R: ",codes[(code[0], n)]['R'])
+        print("----------------------------------------")
+
+
+

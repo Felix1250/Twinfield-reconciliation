@@ -2,15 +2,28 @@ import error_correction_lib as ec
 import numpy as np
 from file_utils import codes_from_file
 from os import path
+import math
+
+
+def determine_codes_and_length(key):
+    length_key = len(key)
+    n_1 = math.ceil(length_key/1944.0)
+    n_2 = math.ceil(length_key/4000.0)
+    if n_1*1944 < n_2 * 4000 :
+        a = length_key/n_1
+        return a, codes_from_file("/home/felix/QKD_felix/src/reconciliation/QKD_LDPC_python/codes_1944.txt") 
+    a = length_key/n_2
+    return a, codes_from_file("/home/felix/QKD_felix/src/reconciliation/QKD_LDPC_python/codes_4000.txt") 
+
 
 def ldpc(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True):
     #this loades a code from teh ieee codes with a length of 1944
-    n_bits = 1934 #  number of bits
     f_start = 1.0 # starting efficiency
     discl_k = 1
 
-    codes = codes_from_file("/home/felix/QKD_felix/src/reconciliation/QKD_LDPC_python/codes_1944.txt") 
-    n = 1944
+    #codes = codes_from_file("/home/felix/QKD_felix/src/reconciliation/QKD_LDPC_python/codes_1944.txt")  
+    #n = 1944
+    n,codes = determine_codes_and_length(correct_key)
 
     # Computing the range of rates for given codes
     R_range = []
@@ -70,7 +83,8 @@ def ldpc(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True)
     print("remaining errorrate: " + str(np.mean(remaining_errors)))
     return correct_key,corrected_key, disclosed_info, com_iters_counter
 
-#R_range = [0.5,2/3,3/4,1,4/5,70/71]
-#qber_est = 0.0000003
-#R, s_n, p_n = ec.choose_sp(qber_est, 1, R_range, 1944)
-#print(R)
+#if __name__ == '__main__':
+    #R_range = [0.5,2/3,3/4,1,4/5,70/71]
+    #qber_est = 0.0000003
+    #R, s_n, p_n = ec.choose_sp(qber_est, 1, R_range, 1944)
+    #print(R)
