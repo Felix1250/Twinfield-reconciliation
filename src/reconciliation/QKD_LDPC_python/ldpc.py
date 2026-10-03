@@ -15,8 +15,16 @@ def determine_codes_and_length(key):
     a = length_key/n_2
     return a, codes_from_file("/home/felix/QKD_felix/src/reconciliation/QKD_LDPC_python/codes_4000.txt") 
 
+def calc_params(k,n,R_range):
 
-def ldpc(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True):
+    R= k/n
+    R_min = min(abs(x - R) for x in R_range)
+    s = n-k
+    p = -(k-s)/R_min - s+n
+    return R_min,s,p
+
+
+def ldpc(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True, target_f = 1.2):
     #this loades a code from teh ieee codes with a length of 1944
     f_start = 1.0 # starting efficiency
     discl_k = 1
@@ -30,7 +38,8 @@ def ldpc(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True)
     for code in codes:
         R_range.append(code[0])
     # calculate how many bits have to be punctured or added
-    R, s_n, p_n = ec.choose_sp(qber_est, f_start, R_range, n)
+    #R, s_n, p_n = ec.choose_sp(qber_est, f_start, R_range, n)
+    R, s_n, p_n = calc_params(len(correct_key), n, R_range)
 
     print(f"R range is: {np.sort(R_range)}")
 
