@@ -13,7 +13,8 @@ def determine_codes_and_length(key):
         a = length_key/n_1
         return a, codes_from_file("/home/felix/QKD_felix/src/reconciliation/QKD_LDPC_python/codes_1944.txt") 
     a = length_key/n_2
-    return a, codes_from_file("/home/felix/QKD_felix/src/reconciliation/QKD_LDPC_python/codes_4000.txt") 
+    return a,n_1, codes_from_file("/home/felix/QKD_felix/src/reconciliation/QKD_LDPC_python/codes_4000.txt") 
+
 
 def calc_params(k,n,R_range):
 
@@ -54,6 +55,7 @@ def ldpc(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True,
     discl_n = int(round(n*(0.0280-0.02*R)*discl_k))
     disclosed_info = 0
 
+    # length = n - shortened - punctured bits
     payload_per_block = n - s_n - p_n
 
     # Chunk the key into blocks of payload_per_block

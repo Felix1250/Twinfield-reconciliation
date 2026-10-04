@@ -5,14 +5,14 @@ import strawberryfields as sf
 from strawberryfields import ops
 import multiprocessing as mp
 from tqdm import tqdm
-import datetime
 import gc
 import sys
 
 
 import tf_utils
 import tensorflow as tf
-sys.path.append("/home/felix/QKD_felix/src/reconciliation")
+#sys.path.append("/home/felix/QKD_felix/src/reconciliation")
+sys.path.append("../reconciliation")
 tf.get_logger().setLevel('ERROR')
 
 
@@ -100,11 +100,11 @@ def _run_trial_worker(
 
 class Twinfield:
     #variables for generating
-    pd0 = 0#math.pow(10,-5) #darkcount of each detector individually
-    pd1 = 0#math.pow(10,-5)
+    pd0 = math.pow(10,-5) #darkcount of each detector individually
+    pd1 = math.pow(10,-5)
 
-    eta1 = 1#0.95 #detection efficiency of the detectors
-    eta2 = 1#0.95 
+    eta1 = 0.8#0.95 #detection efficiency of the detectors
+    eta2 = 0.8#0.95 
 
     mu1 = 0.1 #  intesity of decoy states
     mu2 = 0.298
@@ -119,7 +119,7 @@ class Twinfield:
     loss_1 = 0#math.exp(-100/22) #losses for both distances, as the distances do not have to be equal
     loss_2 = 0#math.exp(-100/22)
 
-    phase_shift_average = 0.01
+    phase_shift_average = 0.15 #missaligment error 
 
     # variables for aftercomm
 
@@ -275,7 +275,7 @@ class Twinfield:
         arr2 = signal_bits.copy()
         np.random.shuffle(arr2)
         arr2 = arr2[:n]
-        arr = signal_bits[n:]
+        arr = signal_bits[len(alice_key)-n:]
         counter_NN = 0
         counter_SN = 0
         counter_SS = 0
@@ -447,9 +447,9 @@ class Twinfield:
         #data = np.load("output.npz")
         #aftercomm(data["first"],data["second"],data["third"],data["fourth"])
 
-    def tf_communicat_load(cls,path="temp.npz"):
+    def tf_communicat_load(cls,path="temp.npz",aopp_enabled = False):
         data = np.load(path)
-        return cls.aftercomm(data["first"],data["second"],data["third"],data["fourth"],data["fifth"])
+        return cls.aftercomm(data["first"],data["second"],data["third"],data["fourth"],data["fifth"],aopp_enabled=aopp_enabled)
     
     def tf_communicate_load_settings(cls, path = "temp.npz"):
         data = np.load(path)

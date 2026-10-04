@@ -4,7 +4,8 @@ from tqdm import tqdm
 import sys
 from os import path
 
-sys.path.append("/home/felix/QKD_felix/src/Twinfield_QKD")
+#sys.path.append("/home/felix/QKD_felix/src/Twinfield_QKD")
+sys.path.append("../Twinfield_QKD")
 
 import tf_utils
 
