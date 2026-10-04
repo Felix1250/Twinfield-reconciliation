@@ -136,6 +136,8 @@ class Twinfield:
     _emu3 = 0
     _ex1 = 0
     _ex2 = 0
+    _ez = 0
+    _ex = 0
     _decoy_length = 0
     
     _error_number = 0
@@ -260,30 +262,29 @@ class Twinfield:
         print("NN in signal window: " + str(counter_NN))
         print("NS/SN in signal window: " + str(counter_SN/counter_signal_window))
         print("SS in signal window: " + str(counter_SS/counter_signal_window))
-        Ez = (counter_NN + counter_SS) / n
+        cls._ex = Ez = (counter_NN + counter_SS) / n
         print("Error rate of subset: " + str(Ez))
         print("---------------------------------------")
         return alice_key[arr],bob_key[arr]
 
 
-    def calc_ez_old(cls,alice_bits,bob_bits,signal_bits,n,counter_signal_window):
-        if n > len(signal_bits):
+    def calc_ez(cls,alice_key,bob_key,n,counter_signal_window):
+        if n > len(alice_key):
             print("too many error test bits for key length")
-            return signal_bits, 0
+            return alice_key,bob_key
         if n == 0:
-            return signal_bits, 0
-        arr2 = signal_bits.copy()
+            return alice_key,bob_key
+        arr2 = np.arange(0,len(alice_key))
         np.random.shuffle(arr2)
-        arr2 = arr2[:n]
-        arr = signal_bits[len(alice_key)-n:]
+        arr_test = arr2[:n]
+        arr = arr2[len(alice_key)-n:]
         counter_NN = 0
         counter_SN = 0
         counter_SS = 0
-        for i in range(len(arr2)):
-            if alice_bits[1][arr2[i]] == 1 and bob_bits[1][arr2[i]] == 1:
+        for i in range(len(arr_test)):
+            if alice_key[arr_test[i]] == 1 and bob_key[arr_test[i]] == 1:
                 counter_SS += 1
-                alice_bits[2][arr2[i]] - bob_bits[2][arr2[i]] < math.pi/2
-            elif alice_bits[1][arr2[i]] == 0 and bob_bits[1][arr2[i]] == 0:
+            elif alice_key[arr_test[i]] == 0 and bob_key[arr_test[i]] == 0:
                 counter_NN += 1     
             else:
                 counter_SN += 1
@@ -291,10 +292,10 @@ class Twinfield:
         print("NN in signal window: " + str(counter_NN))
         print("NS/SN in signal window: " + str(counter_SN/counter_signal_window))
         print("SS in signal window: " + str(counter_SS/counter_signal_window))
-        Ez = (counter_NN + counter_SS) / n
+        cls._ez = Ez = (counter_NN + counter_SS) / n
         print("Error rate of subset: " + str(Ez))
         print("---------------------------------------")
-        return arr,Ez
+        return alice_key[arr],bob_key[arr]
 
     def calc_ex(cls,alice_bits,bob_bits,decoy_bits):
         if len(decoy_bits) == 0:

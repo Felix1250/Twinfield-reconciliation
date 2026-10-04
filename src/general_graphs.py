@@ -2,6 +2,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+import argparse
 
 sys.path.append("/home/felix/QKD_felix/src/Twinfield_QKD")
 sys.path.append("/home/felix/QKD_felix/src/reconciliation/QKD_LDPC_python")
@@ -11,8 +12,9 @@ import tf_utils
 import twinfield_communication_tensorflow
 import aopp
 import ldpc
+import hashing
 
-def simulate_physics(path,pd = math.pow(10,-5) , eta  =0.8, ea = 0.15,distance = 0,length = 1000000):
+def simulate_physics(path,pd = math.pow(10,-5) , eta  =0.8, ea = 0.15,distance = 0,length = 100):
     twin =twinfield_communication_tensorflow.Twinfield()
 
     loss_db_per_km = 0.2 # km
@@ -29,108 +31,70 @@ def simulate_physics(path,pd = math.pow(10,-5) , eta  =0.8, ea = 0.15,distance =
 
     twin.tf_communicate(tf_utils.generate_seed(),tf_utils.generate_seed(),length,path)
 
-def simulate_comm(path):
+    print("hey i was doing something")
+
+def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled = False):
     twin =twinfield_communication_tensorflow.Twinfield()
     twin.tf_communicate_load_settings(path)
 
-    alice_key, bob_key = twin.tf_communicat_load(path)
-            
-    
-    signal_lengths = np.zeros((3,8))
-    error_rate = np.zeros((3,8))
-    key_rate = np.zeros((3,8))
-    plob = np.zeros(8)
-    x = []
-    y = []
-    comm_iters = np.zeros((2,8))
-    for i in range(0,1):
-        loadpath = "saves/distance/distance_" + str(i) + ".npz"
-        twin.tf_communicate_load_settings(loadpath)
-        x.append(i*100)
-        y.append(i)
+    alice_key, bob_key = twin.tf_communicat_load(path,aopp_enabled = aopp_enabled)
 
-        loss_db_per_km = 0.2
-        distance = i*50  # km
-        total_loss_db = loss_db_per_km * distance  # 30 dB
-        twin.eta1 = 0.3
-        twin.eta2 = 0.3
-        transmittance = 10 ** (-total_loss_db / 10)
-    
-        if transmittance < 1:
-            loss_db_per_km = 0.2
-            distance = i*100  # km
-            total_loss_db = loss_db_per_km * distance  # 30 dB
-            twin.eta1 = 0.3
-            twin.eta2 = 0.3
-            transmittance = 10 ** (-total_loss_db / 10)
-            plob[i] = - math.log2(1-transmittance)
-        else:
-            plob[i] = 1
+    comm_iters = 0
+    error_rate = 0
 
-        alice_key, bob_key = twin.tf_communicat_load(loadpath)
-        
-        disclosed_info = 0
-        signal_lengths[0][i] = len(alice_key)- disclosed_info
-        if len(alice_key) > 0:
-            error_rate[0][i] = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))
-        key_rate[0][i] = (len(alice_key)- disclosed_info)/twin._N_pulses
-        #print("-----------------------aopp------------------------------------")
-        #alice_key, bob_key = aopp.aopp(alice_key, bob_key)
-        #signal_lengths[1][i] = len(alice_key)- disclosed_info
-        #if len(alice_key) > 0:
-        #    error_rate[1][i] = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))
-        #key_rate[1][i] = (len(alice_key)- disclosed_info)/twin._N_pulses
-        print("-----------------------ldpc------------------------------------")
-        alice_key_1 = alice_key.copy()
-        bob_key_1 = bob_key.copy()
-        if np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int))) > 0:
-            alice_key, bob_key,disclosed_info,comm_iters[0][i] = ldpc.ldpc(alice_key_1, bob_key_1, np.mean(np.abs(alice_key_1.astype(int) - bob_key_1.astype(int))),twin.pd0,twinfield=True)
-            alice_key, bob_key,disclosed_info,comm_iters[1][i] = ldpc.ldpc(alice_key_1, bob_key_1, np.mean(np.abs(alice_key_1.astype(int) - bob_key_1.astype(int))),twin.pd0,twinfield=False)
-        signal_lengths[2][i] = len(alice_key)- disclosed_info
-        if len(alice_key) > 0:
-            error_rate[2][i] = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))
-        key_rate[2][i] = (len(alice_key)- disclosed_info)/twin._N_pulses
-    print("comm iters: ", comm_iters)
+    if ldpc_enabled:
+        alice_key, bob_key,disclosed_info,comm_iters = ldpc.ldpc(alice_key_1, bob_key_1, twin._ez,twin.pd0,twinfield=True)
+    if hash_enabled:
+        alice_key, bob_key = hashing.priv_ampl(alice_key, bob_key, twin._ex1)
+    signal_length = len(alice_key)
+    if len(alice_key) > 0:
+        error_rate = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))        
+    key_rate = (len(alice_key))/twin._N_pulses
+    return signal_length, error_rate , key_rate , comm_iters
 
-    np.savez("/home/felix/QKD_felix/saves/graph data/ldpc_test.npz",
-            first=error_rate,
-            second=signal_lengths,
-            third=key_rate,)
+def plot_general(key_rate, error_rate,labels,image_savepath):
+    fig, ax1 = plt.subplots(figsize=(8, 5))
+    y = np.arange(0,len(key_rate))
+    ax1.plot(y, key_rate, color='red', marker='o', linestyle='-', linewidth=2, label='bit rate', zorder=3)
+    ax1.set_xlabel('phase slices', fontsize=12) # Shared X label
+    ax1.set_ylabel('bit rate', color='red', fontsize=12)
+    ax1.tick_params(axis='y', labelcolor='red')
 
+    ax1.set_xticks(np.arange(len(labels)))
+    ax1.set_xticklabels(labels)
 
-    fig, ax = plt.subplots(figsize=(8, 6))
-    ax.plot(key_rate[0], label="pre reconciliation")
-    ax.plot(key_rate[1], label="aopp")
-    ax.plot(key_rate[2], label="aopp + ldpc")
-    ax.plot(plob, label="PLOB")
-    #cbar = fig.colorbar(im, ax=ax)
-    #cbar.set_label("Key Rate")
-    plt.title("Key Rate")
-    plt.xlabel("distance in km")
-    plt.ylabel("key rate")
-    plt.yscale('log')
+    ax2 = ax1.twinx()  
+    ax2.bar(y, error_rate, width=0.6, color='skyblue', alpha=0.5, label='error rate', zorder=1)
+    ax2.set_ylabel('error rate', color='blue', fontsize=12)
+    ax2.tick_params(axis='y', labelcolor='blue')
 
-    ax.set_xticks(np.arange(len(x)))
-    ax.set_xticklabels(x)
-    ax.legend()
+    ax1.set_zorder(ax2.get_zorder() + 1)
+    ax1.patch.set_visible(False)
+
+    # Something something legend
+    handles_1, labels_1 = ax1.get_legend_handles_labels()
+    handles_2, labels_2 = ax2.get_legend_handles_labels()
+    ax1.legend(handles_1 + handles_2, labels_1 + labels_2, loc='upper right')
+
     plt.tight_layout()
-    plt.savefig("figures/my_graph/ldpc_1.png", dpi=300, bbox_inches="tight")
-    plt.close()
+    plt.savefig(image_savepath, dpi=300)
 
-    fig, ax = plt.subplots(figsize=(8, 6))
-    ax.plot(comm_iters[0], label="new")
-    ax.plot(comm_iters[1], label="old")
+def main():
+    parser = argparse.ArgumentParser(description="Run Twinfield QKD simulation and graph generation.")
+    parser.add_argument("--savefile", type=str, required=True, help="Directory to save job outputs.")
+    parser.add_argument("--pd", type=float, default=math.pow(10, -5), help="Dark count probability.")
+    parser.add_argument("--eta", type=float, default=0.8, help="Efficiency.")
+    parser.add_argument("--ea", type=float, default=0.15, help="Phase shift average.")
+    parser.add_argument("--distance", type=float, default=0.0, help="Distance in km.")
 
-    #cbar = fig.colorbar(im, ax=ax)
-    #cbar.set_label("Key Rate")
-    plt.title("com iters")
-    plt.xlabel("distance in km")
-    plt.ylabel("key rate")
-    plt.yscale('log')
+    args = parser.parse_args()
+    print(args)
+    simulate_physics(args.savefile, args.pd, args.eta, args.ea, args.distance)
 
-    ax.set_xticks(np.arange(len(x)))
-    ax.set_xticklabels(x)
-    ax.legend()
-    plt.tight_layout()
-    plt.savefig("figures/my_graph/ldpc_2.png", dpi=300, bbox_inches="tight")
-    plt.close()
+if __name__ == "__main__":
+    main()
+
+#key_rate = [0.1,0.2,0.3,0.1,0.4,0.6,0.7,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4]
+#error_rate = [0.5,0.42,0.43,0.41,0.4,0.46,0.47,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4]
+#labels = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.10,0.11,0.12,0.13,0.14,0.15]
+#plot_general(key_rate,error_rate,labels, "test.png")

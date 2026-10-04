@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+from __future__ import annotations
 """
 run single-threaded simulations ("jobs") in parallel, one job per available CPU
 
@@ -30,8 +30,12 @@ from subprocess import Popen, TimeoutExpired
 import subprocess
 import time
 from types import FrameType
-from typing import override
 
+try:
+    from typing import override
+except ImportError:
+    def override(func):
+        return func
 
 class BaseJob:
     def __init__(self, base_path: Path) -> None:
@@ -136,7 +140,7 @@ class BaseJob:
         except TimeoutExpired:
             return None
 
-
+'''
 class WalkerDeltaJob(BaseJob):
     def __init__(self, base_path: Path, t: int, p: int, f: int) -> None:
         super().__init__(base_path)
@@ -183,7 +187,7 @@ def generate_jobs(base_path: Path) -> Generator[BaseJob]:
     for t, p in [(900, 30), (400, 20), (100, 10)]:
         for f in range(0, p):
             yield WalkerDeltaJob(base_path, t, p, f)
-
+'''
 
 def schedule(gen: Generator[BaseJob], max_parallel_jobs: int | None = None):
     if max_parallel_jobs is None:

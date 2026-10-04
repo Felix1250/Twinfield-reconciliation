@@ -9,7 +9,7 @@ def get_hashed(key,seed,n,m):
     raw_sums = np.round(conv[n-1 : n-1 + m]).astype(np.int64)
     return (raw_sums % 2).astype(np.uint8)
 
-error =  math.power(10,-20)
+error =  math.pow(10,-20)
 def after_EC(alice_key: np.ndarray, bob_key: np.ndarray, seed: np.ndarray = np.empty(0, dtype=np.uint8)):
     if len(alice_key) != len(bob_key):
         raise ValueError("Alice and Bob keys must have the same length.")
@@ -23,14 +23,12 @@ def after_EC(alice_key: np.ndarray, bob_key: np.ndarray, seed: np.ndarray = np.e
 
     alice_hash = get_hashed(alice_key, seed_slice, n, m)
     bob_hash = get_hashed(bob_key, seed_slice, n, m)
-
-
-
     print("FFT Hashed Key:    ", alice_hash)
     print("Direct Matrix Key: ", bob_hash)
     print("Match:", np.array_equal(alice_hash, bob_hash))
-    if
-    return alice_key, bob_key
+    if np.array_equal(alice_hash, bob_hash):
+        return alice_key, bob_key
+    return 0,0
 
 
 def calc_m(length_key_after_reconciliation,e_ph):
@@ -54,3 +52,8 @@ def scipy_toeplitz_hash_with_matrix(alice_key: np.ndarray, bob_key: np.ndarray, 
     print("Match:", np.array_equal(alice_hash, bob_hash))
     
     return alice_hash, bob_hash
+
+def priv_ampl(alice_key: np.ndarray, bob_key: np.ndarray, eph:float):
+    alice_key2,bob_key2  = after_EC(alice_key,bob_key)
+    m = calc_m(len(alice_key),e_ph=eph)
+    return scipy_toeplitz_hash_with_matrix(alice_key2,bob_key2,m)
