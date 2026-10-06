@@ -86,7 +86,7 @@ class Twinfield_job(paralell.BaseJob):
         ]
 
 
-datapoints = 10
+datapoints = 20
 savefolder = os.getcwd() + "/saves/pd"
 def generate_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
     # Example parameter sweeps; customize these tuples as needed for your server graphs
@@ -124,5 +124,5 @@ def pd_rest():
 
 
 if __name__ == "__main__":
-    #pd()
-    pd_rest()
+    pd()
+    #pd_rest()

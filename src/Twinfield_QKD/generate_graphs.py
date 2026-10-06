@@ -1,3 +1,4 @@
+import os
 import twinfield_communication_tensorflow
 import tf_utils
 import math
@@ -5,9 +6,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 
-sys.path.append("/home/felix/QKD_felix/src/Twinfield_QKD")
-sys.path.append("/home/felix/QKD_felix/src/reconciliation/QKD_LDPC_python")
-sys.path.append("/home/felix/QKD_felix/src/reconciliation")
+cw_path = os.getcwd()
+sys.path.append(cw_path + "/src/Twinfield_QKD")
+sys.path.append(cw_path + "/src/reconciliation/QKD_LDPC_python")
+sys.path.append(cw_path + "/src/reconciliation")
 
 import tf_utils
 import twinfield_communication_tensorflow

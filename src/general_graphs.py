@@ -1,12 +1,14 @@
 import math
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
 import argparse
 
-sys.path.append("/home/felix/QKD_felix/src/Twinfield_QKD")
-sys.path.append("/home/felix/QKD_felix/src/reconciliation/QKD_LDPC_python")
-sys.path.append("/home/felix/QKD_felix/src/reconciliation")
+cw_path = os.getcwd()
+sys.path.append(cw_path + "/src/Twinfield_QKD")
+sys.path.append(cw_path + "/src/reconciliation/QKD_LDPC_python")
+sys.path.append(cw_path + "/src/reconciliation")
 
 import tf_utils
 import twinfield_communication_tensorflow
@@ -14,7 +16,7 @@ import aopp
 import ldpc
 import hashing
 
-def simulate_physics(path,pd = math.pow(10,-5) , eta  =0.8, ea = 0.15,distance = 0,length = 100):
+def simulate_physics(path,pd = math.pow(10,-5) , eta  =0.8, ea = 0.15,distance = 0,length = 1000000):
     twin =twinfield_communication_tensorflow.Twinfield()
 
     loss_db_per_km = 0.2 # km
