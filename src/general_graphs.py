@@ -41,24 +41,25 @@ def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled =
 
     alice_key, bob_key = twin.tf_communicat_load(path,aopp_enabled = aopp_enabled)
 
+    n_1 = len(alice_key)
     comm_iters = 0
     error_rate = 0
 
     if ldpc_enabled:
         alice_key, bob_key,disclosed_info,comm_iters = ldpc.ldpc(alice_key_1, bob_key_1, twin._ez,twin.pd0,twinfield=True)
     if hash_enabled:
-        alice_key, bob_key = hashing.priv_ampl(alice_key, bob_key, twin._ex1)
+        alice_key, bob_key = hashing.priv_ampl(alice_key, bob_key, twin._ex1,n_1)
     signal_length = len(alice_key)
     if len(alice_key) > 0:
         error_rate = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))        
     key_rate = (len(alice_key))/twin._N_pulses
     return signal_length, error_rate , key_rate , comm_iters
 
-def plot_general(key_rate, error_rate,labels,image_savepath):
+def plot_general(key_rate, error_rate,labels,image_savepath,x_label = ""):
     fig, ax1 = plt.subplots(figsize=(8, 5))
     y = np.arange(0,len(key_rate))
     ax1.plot(y, key_rate, color='red', marker='o', linestyle='-', linewidth=2, label='bit rate', zorder=3)
-    ax1.set_xlabel('phase slices', fontsize=12) # Shared X label
+    ax1.set_xlabel(x_label, fontsize=12) # Shared X label
     ax1.set_ylabel('bit rate', color='red', fontsize=12)
     ax1.tick_params(axis='y', labelcolor='red')
 

@@ -137,7 +137,6 @@ class Twinfield:
     _ex1 = 0
     _ex2 = 0
     _ez = 0
-    _ex = 0
     _decoy_length = 0
     
     _error_number = 0
@@ -262,40 +261,12 @@ class Twinfield:
         print("NN in signal window: " + str(counter_NN))
         print("NS/SN in signal window: " + str(counter_SN/counter_signal_window))
         print("SS in signal window: " + str(counter_SS/counter_signal_window))
-        cls._ex = Ez = (counter_NN + counter_SS) / n
-        print("Error rate of subset: " + str(Ez))
-        print("---------------------------------------")
-        return alice_key[arr],bob_key[arr]
-
-
-    def calc_ez(cls,alice_key,bob_key,n,counter_signal_window):
-        if n > len(alice_key):
-            print("too many error test bits for key length")
-            return alice_key,bob_key
-        if n == 0:
-            return alice_key,bob_key
-        arr2 = np.arange(0,len(alice_key))
-        np.random.shuffle(arr2)
-        arr_test = arr2[:n]
-        arr = arr2[len(alice_key)-n:]
-        counter_NN = 0
-        counter_SN = 0
-        counter_SS = 0
-        for i in range(len(arr_test)):
-            if alice_key[arr_test[i]] == 1 and bob_key[arr_test[i]] == 1:
-                counter_SS += 1
-            elif alice_key[arr_test[i]] == 0 and bob_key[arr_test[i]] == 0:
-                counter_NN += 1     
-            else:
-                counter_SN += 1
-        print("---------------------------------------")
-        print("NN in signal window: " + str(counter_NN))
-        print("NS/SN in signal window: " + str(counter_SN/counter_signal_window))
-        print("SS in signal window: " + str(counter_SS/counter_signal_window))
         cls._ez = Ez = (counter_NN + counter_SS) / n
         print("Error rate of subset: " + str(Ez))
         print("---------------------------------------")
         return alice_key[arr],bob_key[arr]
+
+
 
     def calc_ex(cls,alice_bits,bob_bits,decoy_bits):
         if len(decoy_bits) == 0:
@@ -350,6 +321,7 @@ class Twinfield:
             print("exmu1: " + str(cls._ex1))
             print("exmu2: " + str(cls._ex2))
             print("max: " + str(max/math.pi))
+
             print("---------------------------------------")
         else:
             print("---------------------------------------")

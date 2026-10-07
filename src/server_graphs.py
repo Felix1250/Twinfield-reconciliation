@@ -88,8 +88,7 @@ class Twinfield_job(paralell.BaseJob):
 
 datapoints = 20
 savefolder = os.getcwd() + "/saves/pd"
-def generate_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
-    # Example parameter sweeps; customize these tuples as needed for your server graphs
+def generate_pd_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
     Path(savefolder).parent.mkdir(parents=True, exist_ok=True)
     for i in range(datapoints):
         savefile = savefolder + "/_pd" + str(i) + ".npz"
@@ -101,28 +100,90 @@ def generate_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
             ea=0.15,
             distance=0,
         )
+
+
+def generate_eta_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
+    savefolder = os.getcwd() + "/saves/eta"
+    Path(savefolder).parent.mkdir(parents=True, exist_ok=True)
+    for i in range(datapoints):
+        savefile = savefolder + "/_eta" + str(i) + ".npz"
+        yield Twinfield_job(
+            base_path=base_path,
+            savefile=savefile,
+            pd=math.pow(10, -5),
+            eta=i/20,
+            ea=0.15,
+            distance=0,
+        )
+
+
+def generate_ea_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
+    savefolder = os.getcwd() + "/saves/ea"
+    Path(savefolder).parent.mkdir(parents=True, exist_ok=True)
+    for i in range(datapoints):
+        savefile = savefolder + "/_ea" + str(i) + ".npz"
+        yield Twinfield_job(
+            base_path=base_path,
+            savefile=savefile,
+            pd=math.pow(10, -5),
+            eta=0.8,
+            ea=i/20,
+            distance=0,
+        )
+
     
 
 
 def pd():
-    print(savefolder)
     result_dir: Path = Path.cwd() / "results"
-    gen = generate_jobs(result_dir)
+    gen = generate_pd_jobs(result_dir)
+    paralell.schedule(gen)
+
+def eta():
+    result_dir: Path = Path.cwd() / "results/eta"
+    gen = generate_eta_jobs(result_dir)
+    paralell.schedule(gen)
+
+def ea():
+    result_dir: Path = Path.cwd() / "results/ea"
+    gen = generate_ea_jobs(result_dir)
     paralell.schedule(gen)
 
 def pd_rest():
+    savefolder = os.getcwd() + "/saves/pd"
     error_rate = np.zeros(datapoints)
     key_rate = np.zeros(datapoints)
     labels = []
     for i in range(datapoints):
         savefile = savefolder + "/_pd" + str(i) + ".npz"
-        labels.append(i)
+        labels.append(f"$10^{{-{i}}}$")
         signal_length, error_rate[i] , key_rate[i] , comm_iters=general_graphs.simulate_comm(savefile)
-    general_graphs.plot_general(key_rate, error_rate,labels,os.getcwd() + "/myfigures/savepath.png")
+    general_graphs.plot_general(key_rate, error_rate,labels,os.getcwd() + "/my_graph/pd.png",x_label="r'$p_d$")
         
+def eta_rest():
+    savefolder = os.getcwd() + "/saves/eta"
+    error_rate = np.zeros(datapoints)
+    key_rate = np.zeros(datapoints)
+    labels = []
+    for i in range(datapoints):
+        savefile = savefolder + "/_eta" + str(i) + ".npz"
+        labels.append(f"{i/20:.2f}")
+        signal_length, error_rate[i] , key_rate[i] , comm_iters=general_graphs.simulate_comm(savefile)
+    general_graphs.plot_general(key_rate, error_rate,labels,os.getcwd() + "/my_graph/eta.png",x_label="r'$\eta$")
 
+def ea_rest():
+    savefolder = os.getcwd() + "/saves/eta"
+    error_rate = np.zeros(datapoints)
+    key_rate = np.zeros(datapoints)
+    labels = []
+    for i in range(datapoints):
+        savefile = savefolder + "/_ea" + str(i) + ".npz"
+        labels.append(f"{i/20:.2f}")
+        signal_length, error_rate[i] , key_rate[i] , comm_iters=general_graphs.simulate_comm(savefile)
+    general_graphs.plot_general(key_rate, error_rate,labels,os.getcwd() + "/my_graph/ea.png",x_label="r'$e_a$")
 
 
 if __name__ == "__main__":
-    pd()
+    ea()
+    eta()
     #pd_rest()

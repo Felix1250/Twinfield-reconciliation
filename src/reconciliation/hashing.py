@@ -31,10 +31,10 @@ def after_EC(alice_key: np.ndarray, bob_key: np.ndarray, seed: np.ndarray = np.e
     return 0,0
 
 
-def calc_m(length_key_after_reconciliation,e_ph):
+def calc_m(length_key_before_reconciliation,e_ph):
     H = - e_ph * math.log2(e_ph) - (1 - e_ph)  * math.log2(1 - e_ph)
     factor =   - math.log2(2/error) - 2 * math.log2( 1 / ( math.sqrt(2) * error * error))
-    return length_key_after_reconciliation * (1-H) + factor 
+    return length_key_before_reconciliation * (1-H) + factor 
 
 def scipy_toeplitz_hash_with_matrix(alice_key: np.ndarray, bob_key: np.ndarray, m: int, seed: np.ndarray = np.empty(0, dtype=np.uint8)):
     if len(alice_key) != len(bob_key):
@@ -53,7 +53,6 @@ def scipy_toeplitz_hash_with_matrix(alice_key: np.ndarray, bob_key: np.ndarray, 
     
     return alice_hash, bob_hash
 
-def priv_ampl(alice_key: np.ndarray, bob_key: np.ndarray, eph:float):
+def priv_ampl(alice_key: np.ndarray, bob_key: np.ndarray, eph:float,n_1:int):
     alice_key2,bob_key2  = after_EC(alice_key,bob_key)
-    m = calc_m(len(alice_key),e_ph=eph)
     return scipy_toeplitz_hash_with_matrix(alice_key2,bob_key2,m)
