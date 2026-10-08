@@ -158,7 +158,7 @@ def pd_rest():
         savefile = savefolder + "/_pd" + str(i) + ".npz"
         labels.append(f"$10^{{-{i}}}$")
         signal_length, error_rate[i] , key_rate[i] , comm_iters=general_graphs.simulate_comm(savefile)
-    general_graphs.plot_general(key_rate, error_rate,labels,os.getcwd() + "/my_graph/pd.png",x_label="r'$p_d$")
+    general_graphs.plot_general(key_rate, error_rate,labels,os.getcwd() + "/figures/my_graph/pd.png",x_label="r'$p_d$")
         
 def eta_rest():
     savefolder = os.getcwd() + "/saves/eta"
@@ -169,10 +169,10 @@ def eta_rest():
         savefile = savefolder + "/_eta" + str(i) + ".npz"
         labels.append(f"{i/20:.2f}")
         signal_length, error_rate[i] , key_rate[i] , comm_iters=general_graphs.simulate_comm(savefile)
-    general_graphs.plot_general(key_rate, error_rate,labels,os.getcwd() + "/my_graph/eta.png",x_label="r'$\eta$")
+    general_graphs.plot_general(key_rate, error_rate,labels,os.getcwd() + "/figures/my_graph/eta.png",x_label="r'$\eta$")
 
 def ea_rest():
-    savefolder = os.getcwd() + "/saves/eta"
+    savefolder = os.getcwd() + "/saves/ea"
     error_rate = np.zeros(datapoints)
     key_rate = np.zeros(datapoints)
     labels = []
@@ -180,7 +180,7 @@ def ea_rest():
         savefile = savefolder + "/_ea" + str(i) + ".npz"
         labels.append(f"{i/20:.2f}")
         signal_length, error_rate[i] , key_rate[i] , comm_iters=general_graphs.simulate_comm(savefile)
-    general_graphs.plot_general(key_rate, error_rate,labels,os.getcwd() + "/my_graph/ea.png",x_label="r'$e_a$")
+    general_graphs.plot_general(key_rate, error_rate,labels,os.getcwd() + "/figures/my_graph/ea.png",x_label="r'$e_a$")
 
 
 if __name__ == "__main__":
