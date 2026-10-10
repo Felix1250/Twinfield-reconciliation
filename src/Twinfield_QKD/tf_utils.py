@@ -4,10 +4,9 @@ import random
 import matplotlib
 import matplotlib as mpl
 import matplotlib.patches as patches  
-from numba import njit
 import math
 
-@njit
+
 def generate_seed():
     return random.getrandbits(32)
 

@@ -1,11 +1,11 @@
+import os
 import numpy as np
 import random
 from tqdm import tqdm
 import sys
-from os import path
 
-#sys.path.append("/home/felix/QKD_felix/src/Twinfield_QKD")
-sys.path.append("../Twinfield_QKD")
+cw_path = os.getcwd()
+sys.path.append(cw_path + "/src/reconciliation")
 
 import tf_utils
 
