@@ -1,3 +1,4 @@
+import os
 import random
 import numpy as np
 import math
@@ -12,7 +13,8 @@ import sys
 import tf_utils
 import tensorflow as tf
 #sys.path.append("/home/felix/QKD_felix/src/reconciliation")
-sys.path.append("../reconciliation")
+cw_path = os.getcwd()
+sys.path.append(cw_path + "/src/reconciliation")
 tf.get_logger().setLevel('ERROR')
 
 
@@ -137,6 +139,7 @@ class Twinfield:
     _ex1 = 0
     _ex2 = 0
     _ez = 0
+    _ex = 0
     _decoy_length = 0
     
     _error_number = 0
@@ -261,40 +264,81 @@ class Twinfield:
         print("NN in signal window: " + str(counter_NN))
         print("NS/SN in signal window: " + str(counter_SN/counter_signal_window))
         print("SS in signal window: " + str(counter_SS/counter_signal_window))
-        cls._ez = Ez = (counter_NN + counter_SS) / n
+        cls._ex = Ez = (counter_NN + counter_SS) / n
         print("Error rate of subset: " + str(Ez))
         print("---------------------------------------")
         return alice_key[arr],bob_key[arr]
 
 
+    def calc_ez(cls,alice_key,bob_key,n,counter_signal_window):
+        if n > len(alice_key):
+            print("too many error test bits for key length")
+            return alice_key,bob_key
+        if n == 0:
+            return alice_key,bob_key
+        arr2 = np.arange(0,len(alice_key))
+        np.random.shuffle(arr2)
+        arr_test = arr2[:n]
+        arr = arr2[len(alice_key)-n:]
+        counter_NN = 0
+        counter_SN = 0
+        counter_SS = 0
+        for i in range(len(arr_test)):
+            if alice_key[arr_test[i]] == 1 and bob_key[arr_test[i]] == 1:
+                counter_SS += 1
+            elif alice_key[arr_test[i]] == 0 and bob_key[arr_test[i]] == 0:
+                counter_NN += 1     
+            else:
+                counter_SN += 1
+        print("---------------------------------------")
+        print("NN in signal window: " + str(counter_NN))
+        print("NS/SN in signal window: " + str(counter_SN/counter_signal_window))
+        print("SS in signal window: " + str(counter_SS/counter_signal_window))
+        cls._ez = Ez = (counter_NN + counter_SS) / n
+        print("Error rate of subset: " + str(Ez))
+        print("---------------------------------------")
+        return alice_key[arr],bob_key[arr]
 
     def calc_ex(cls,alice_bits,bob_bits,decoy_bits):
         if len(decoy_bits) == 0:
             print("no decoy bits")
             return
         s0 = 0
-        smu1 = 0
-        smu2 = 0
-        max = 0
-        for i in range(len(decoy_bits)):
-            
+        smu1 = 0; smu2 = 0
+        s01 = 0 ; s02 = 0 
+        s10 = 0 ; s20 = 0 
+        n11pos = 0; n11neg = 0
+        N11pos = 0; N11neg = 0
+        for i in range(len(decoy_bits)):  
             x = decoy_bits[i][0]
-            if alice_bits[2][x]- bob_bits[2][x] > max:
-                max = alice_bits[2][x]- bob_bits[2][x] 
             if alice_bits[1][x] == 0 and bob_bits[1][x] == 0:
                 s0 +=1
             elif alice_bits[1][x] == 1 and bob_bits[1][x] == 1:
                 smu1 +=1
-                if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) < 0 and decoy_bits[i][1] == 0:
-                    cls._emu1 +=1
-                if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) > 0 and decoy_bits[i][1] == 1:
-                    cls._emu1 +=1
+                if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) < 0:
+                    N11neg +=1
+                    if decoy_bits[i][1] == 0:
+                        n11neg +=1
+                        cls._emu1 +=1
+                if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) > 0 :
+                    N11pos +=1
+                    if decoy_bits[i][1] == 1:
+                        n11pos +=1
+                        cls._emu1 +=1
             elif alice_bits[1][x] == 2 and bob_bits[1][x] == 2:
                 smu2 +=1
                 if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) < 0 and decoy_bits[i][1] == 0:
                     cls._emu2 +=1
                 if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) > 0 and decoy_bits[i][1] == 1:
                     cls._emu2 +=1
+            elif alice_bits[1][x] == 0 and bob_bits[1][x] == 1:
+                s01 +=1
+            elif alice_bits[1][x] == 1 and bob_bits[1][x] == 0:
+                s10 +=1
+            elif alice_bits[1][x] == 0 and bob_bits[1][x] == 2:
+                s02 +=1
+            elif alice_bits[1][x] == 2 and bob_bits[1][x] == 0:
+                s20 +=1
         if smu1 != 0:
             cls._emu1 = cls._emu1/smu1
         if smu2 != 0:
@@ -302,26 +346,22 @@ class Twinfield:
         s0 = s0/len(decoy_bits)
         smu1 = smu1/len(decoy_bits)
         smu2 = smu2/len(decoy_bits)
-        
-        p2mu1 = 2 * cls.mu1 * cls.mu1 * math.pow(math.e,-2*cls.mu1)
-        p2mu2 = 2 * cls.mu2 * cls.mu2 * math.pow(math.e,-2*cls.mu2)
-        p1mu1 = 2 * cls.mu1 * math.pow(math.e,-2*cls.mu1)
-        p1mu2 = 2 * cls.mu2 * math.pow(math.e,-2*cls.mu2)
-        p0mu1 = math.pow(math.e,-2*cls.mu1)
-        p0mu2 = math.pow(math.e,-2*cls.mu2)
+
+        p2mu1 = 2 * cls.mu2 * cls.mu2 * math.pow(math.e,-cls.mu1)
+        p1mu2 = 2 * cls.mu1 * cls.mu1 * math.pow(math.e,-cls.mu2)
+        mu1mu2 = cls.mu1 * cls.mu2 *(cls.mu2-cls.mu1) 
         s1 = 0
-        if p2mu2*p1mu1 - p2mu1*p1mu2 != 0:
-            s1 = (p2mu2 * (smu1-p0mu1 * s0) - p2mu1 * (smu2 - p0mu2*s0)) / (p2mu2*p1mu1 - p2mu1*p1mu2)
+        if mu1mu2!= 0:
+            s1 = (p2mu1 * (s01 + s10) - p1mu2 * (s02 + s20)- (cls.mu2-cls.mu1) *s0) / (mu1mu2)
         if s1 != 0:
-            cls._ex1 =( cls._emu1 * smu1 - math.pow(math.e , -2 * cls.mu1)*s0/2)/(math.pow(math.e, -2 * cls.mu1)* 2 * cls.mu1 * s1)
-            cls._ex2 =( cls._emu2 * smu2 - math.pow(math.e , -2 * cls.mu2)*s0/2)/(math.pow(math.e, -2 * cls.mu2)* 2 * cls.mu2 * s1)
+            T= 1/2 * (n11pos / N11pos + n11neg / N11neg) 
+            cls._ex1 =(T- 1/2*math.pow(math.e,-2 *cls.mu1)/(2*cls.mu1 * math.pow(math.e,-2 *cls.mu1) * s1))
+  
             print("---------------------------------------")
             print("_emu1: " + str(cls._emu1))
             print("_emu2: " + str(cls._emu2))
             print("exmu1: " + str(cls._ex1))
             print("exmu2: " + str(cls._ex2))
-            print("max: " + str(max/math.pi))
-
             print("---------------------------------------")
         else:
             print("---------------------------------------")
