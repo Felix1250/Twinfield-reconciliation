@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 import argparse
+import csv
 
 cw_path = os.getcwd()
 sys.path.append(cw_path + "/src/Twinfield_QKD")
@@ -16,7 +17,7 @@ import aopp
 import ldpc
 import hashing
 
-def simulate_physics(path,pd = math.pow(10,-5) , eta  =0.8, ea = 0.15,distance = 0,length = 1000000):
+def simulate_physics(path,pd = math.pow(10,-5) , eta  =0.8, ea = 0.15,distance = 0,length = 1000):
     twin =twinfield_communication_tensorflow.Twinfield()
 
     loss_db_per_km = 0.2 # km
@@ -55,7 +56,17 @@ def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled =
     key_rate = (len(alice_key))/twin._N_pulses
     return signal_length, error_rate , key_rate , comm_iters
 
-def plot_general(key_rate, error_rate,labels,image_savepath,x_label = ""):
+def plot_general(key_rate, error_rate,labels,image_savepath,x_label = "",csv_savepath = "temp.csv"):
+
+    data = []
+    for i in range(len(key_rate)):
+        data
+        data[i][0] = key_rate[i]
+        data[i][1] = error_rate[i]
+        data[i][2] = labels[i]
+    with open(csv_savepath, mode="w", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+        writer.writerows(data)
     fig, ax1 = plt.subplots(figsize=(8, 5))
     y = np.arange(0,len(key_rate))
     ax1.plot(y, key_rate, color='red', marker='o', linestyle='-', linewidth=2, label='bit rate', zorder=3)

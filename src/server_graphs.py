@@ -158,7 +158,18 @@ def pd_rest():
         savefile = savefolder + "/_pd" + str(i) + ".npz"
         labels.append(f"$10^{{-{i}}}$")
         signal_length, error_rate[i] , key_rate[i] , comm_iters=general_graphs.simulate_comm(savefile)
-    general_graphs.plot_general(key_rate, error_rate,labels,os.getcwd() + "/figures/my_graph/pd.png",x_label="r'$p_d$")
+    general_graphs.plot_general(key_rate, error_rate,labels,os.getcwd() + "/figures/my_graph/pd.png",x_label="'$p_d$",csv_savepath = os.getcwd() + "/figures/my_graph/pd.csv")
+
+def pd_rest_aopp():
+    savefolder = os.getcwd() + "/saves/pd"
+    error_rate = np.zeros(datapoints)
+    key_rate = np.zeros(datapoints)
+    labels = []
+    for i in range(datapoints):
+        savefile = savefolder + "/_pd" + str(i) + ".npz"
+        labels.append(f"$10^{{-{i}}}$")
+        signal_length, error_rate[i] , key_rate[i] , comm_iters=general_graphs.simulate_comm(savefile,aopp_enabled=True)
+    general_graphs.plot_general(key_rate, error_rate,labels,os.getcwd() + "/figures/my_graph/pd_aopp.png",x_label="'$p_d$",csv_savepath = os.getcwd() + "/figures/my_graph/pd_aopp.csv")
         
 def eta_rest():
     savefolder = os.getcwd() + "/saves/eta"
@@ -169,7 +180,7 @@ def eta_rest():
         savefile = savefolder + "/_eta" + str(i) + ".npz"
         labels.append(f"{i/20:.2f}")
         signal_length, error_rate[i] , key_rate[i] , comm_iters=general_graphs.simulate_comm(savefile)
-    general_graphs.plot_general(key_rate, error_rate,labels,os.getcwd() + "/figures/my_graph/eta.png",x_label="r'$\eta$")
+    general_graphs.plot_general(key_rate, error_rate,labels,os.getcwd() + "/figures/my_graph/eta.png",x_label="'$\eta$",csv_savepath = os.getcwd() + "/figures/my_graph/eta.csv")
 
 def ea_rest():
     savefolder = os.getcwd() + "/saves/ea"
@@ -180,10 +191,11 @@ def ea_rest():
         savefile = savefolder + "/_ea" + str(i) + ".npz"
         labels.append(f"{i/20:.2f}")
         signal_length, error_rate[i] , key_rate[i] , comm_iters=general_graphs.simulate_comm(savefile)
-    general_graphs.plot_general(key_rate, error_rate,labels,os.getcwd() + "/figures/my_graph/ea.png",x_label="r'$e_a$")
+    general_graphs.plot_general(key_rate, error_rate,labels,os.getcwd() + "/figures/my_graph/ea.png",x_label="'$e_a$",csv_savepath = os.getcwd() + "/figures/my_graph/ea.csv")
 
 
 if __name__ == "__main__":
-    ea()
-    eta()
-    #pd_rest()
+    #ea()
+    #eta()
+    pd_rest()
+    #pd_rest_aopp()
