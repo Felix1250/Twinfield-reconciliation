@@ -17,6 +17,7 @@ cw_path = os.getcwd()
 sys.path.append(cw_path + "/src/reconciliation")
 tf.get_logger().setLevel('ERROR')
 
+import aopp
 
 # --- Worker function MUST be defined at top-level for multiprocessing spawn/fork ---
 def _run_trial_worker(
@@ -416,7 +417,7 @@ class Twinfield:
         tf_utils.make_heatmap(measures,"figures/heatmap.png")  
 
         if aopp_enabled:
-            alice_key, bob_key = aopp(alice_key,bob_key)
+            alice_key, bob_key = aopp.aopp(alice_key,bob_key)
         # do analysis on the signal window
         n = max(1000, math.floor(len(alice_key)*cls.n_percentage))
         alice_key,bob_key = cls.calc_ez(alice_key,bob_key,n,counter_signal_window)

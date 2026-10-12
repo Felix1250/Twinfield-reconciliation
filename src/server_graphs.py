@@ -197,5 +197,6 @@ def ea_rest():
 if __name__ == "__main__":
     #ea()
     #eta()
-    pd_rest()
-    #pd_rest_aopp()
+    #pd()
+    #pd_rest()
+    pd_rest_aopp()

@@ -60,10 +60,10 @@ def plot_general(key_rate, error_rate,labels,image_savepath,x_label = "",csv_sav
 
     data = []
     for i in range(len(key_rate)):
-        data
-        data[i][0] = key_rate[i]
-        data[i][1] = error_rate[i]
-        data[i][2] = labels[i]
+        data.append([])
+        data[i].append(key_rate[i])
+        data[i].append(error_rate[i])
+        data[i].append(labels[i])
     with open(csv_savepath, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerows(data)
