@@ -1,4 +1,5 @@
 # ignore generated data
 *.npz
 *.png
+*.csv
 results/*
