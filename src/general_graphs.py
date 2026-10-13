@@ -56,6 +56,19 @@ def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled =
     key_rate = (len(alice_key))/twin._N_pulses
     return signal_length, error_rate , key_rate , comm_iters
 
+def save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = "temp.csv"):
+    data = []
+    for i in range(len(key_rate)):
+        data.append([])
+        data[i].append(key_rate[i])
+        data[i].append(error_rate[i])
+        data[i].append(labels[i])
+        data[i].append(signal_length[i])
+        data[i].append(comm_iters[i])
+    with open(csv_savepath, mode="w", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+        writer.writerows(data)
+
 def plot_general(key_rate, error_rate,labels,image_savepath,x_label = "",csv_savepath = "temp.csv"):
 
     data = []

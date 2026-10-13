@@ -85,6 +85,11 @@ class Twinfield_job(paralell.BaseJob):
             str(self.distance),
         ]
 
+'''
+---------------------------------------------------------------------------------
+what kind of jobs to run, one job per CPU core, each job is a single-threaded simulation
+---------------------------------------------------------------------------------
+'''
 
 datapoints = 20
 savefolder = os.getcwd() + "/saves/pd"
@@ -131,8 +136,27 @@ def generate_ea_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
             distance=0,
         )
 
+def generate_dist_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
+    datapoints = 50
+    savefolder = os.getcwd() + "/saves/dist"
+    Path(savefolder).parent.mkdir(parents=True, exist_ok=True)
+    for i in range(datapoints):
+        savefile = savefolder + "/_dist" + str(i) + ".npz"
+        yield Twinfield_job(
+            base_path=base_path,
+            savefile=savefile,
+            pd=math.pow(10, -5),
+            eta=0.8,
+            ea=0.15,
+            distance=i/datapoints*350, #max 350km one side so 700km total
+            length = 100000000
+        )
     
-
+'''
+---------------------------------------------------------------------------------
+functions to create the jobs and run them in parallel, one job per CPU core
+---------------------------------------------------------------------------------
+'''
 
 def pd():
     result_dir: Path = Path.cwd() / "results"
@@ -148,6 +172,17 @@ def ea():
     result_dir: Path = Path.cwd() / "results/ea"
     gen = generate_ea_jobs(result_dir)
     paralell.schedule(gen)
+
+def dist():
+    result_dir: Path = Path.cwd() / "results"
+    gen = generate_dist_jobs(result_dir)
+    paralell.schedule(gen)
+
+'''
+---------------------------------------------------------------------------------
+All the aftercomm stuff + either making graphs out of it or just saving it in csvs
+---------------------------------------------------------------------------------
+'''
 
 def pd_rest():
     savefolder = os.getcwd() + "/saves/pd"
@@ -193,10 +228,40 @@ def ea_rest():
         signal_length, error_rate[i] , key_rate[i] , comm_iters=general_graphs.simulate_comm(savefile)
     general_graphs.plot_general(key_rate, error_rate,labels,os.getcwd() + "/figures/my_graph/ea.png",x_label="'$e_a$",csv_savepath = os.getcwd() + "/figures/my_graph/ea.csv")
 
+def dist_ldpc(enable_twinfield=True,aopp_enabled = False):
+    savefolder = os.getcwd() + "/saves/dist"
+    datapoints = 50
+    comm_iters = np.zeros(datapoints)
+    key_rate = np.zeros(datapoints)
+    signal_length = np.zeros(datapoints)
+    error_rate = np.zeros(datapoints)
+    labels = []
+    for i in range(datapoints):
+        savefile = savefolder + "/_dist" + str(i) + ".npz"
+        labels.append(i/50*700)
+        signal_length[i], error_rate[i], key_rate[i], comm_iters[i]=general_graphs.simulate_comm(savefile,aopp_enabled = aopp_enabled,ldpc_enabled = True, enable_twinfield=enable_twinfield)
+    general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/dist_" + str(enable_twinfield) + ".csv")
+
+def dist_general(things = 0,aopp_enabled = True,hash_enabled = True,ldpc_enabled = True):
+    savefolder = os.getcwd() + "/saves/dist"
+    datapoints = 50
+    comm_iters = np.zeros(datapoints)
+    key_rate = np.zeros(datapoints)
+    signal_length = np.zeros(datapoints)
+    error_rate = np.zeros(datapoints)
+    labels = []
+    for i in range(datapoints):
+        savefile = savefolder + "/_dist" + str(i) + ".npz"
+        labels.append(i/50*700)
+        signal_length[i], error_rate[i], key_rate[i], comm_iters[i]=general_graphs.simulate_comm(savefile,aopp_enabled = aopp_enabled,ldpc_enabled = ldpc_enabled,hash_enabled = hash_enabled, enable_twinfield=True)
+    general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/dist" + str(things) + ".csv")
 
 if __name__ == "__main__":
     #ea()
     #eta()
     #pd()
     #pd_rest()
-    pd_rest_aopp()
+    #pd_rest_aopp()
+    dist()
+    #dist_ldpc(enable_twinfield = True)
+    #dist_ldpc(enable_twinfield = False)
