@@ -149,7 +149,6 @@ def generate_dist_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
             eta=0.8,
             ea=0.15,
             distance=i/datapoints*350, #max 350km one side so 700km total
-            length = 100000000
         )
     
 '''
