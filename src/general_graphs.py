@@ -17,7 +17,7 @@ import aopp
 import ldpc
 import hashing
 
-def simulate_physics(path,pd = math.pow(10,-5) , eta  =0.8, ea = 0.15,distance = 0,length = 10000000, enable_twinfield=False):
+def simulate_physics(path,pd = math.pow(10,-5) , eta  =0.8, ea = 0.15,distance = 0,length = 100000000):
     twin =twinfield_communication_tensorflow.Twinfield()
 
     loss_db_per_km = 0.2 # km
@@ -36,7 +36,7 @@ def simulate_physics(path,pd = math.pow(10,-5) , eta  =0.8, ea = 0.15,distance =
 
     print("hey i was doing something")
 
-def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled = False):
+def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled = False, enable_twinfield=True):
     twin =twinfield_communication_tensorflow.Twinfield()
     twin.tf_communicate_load_settings(path)
 
