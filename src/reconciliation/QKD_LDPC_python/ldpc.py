@@ -9,24 +9,24 @@ import math
 
 def determine_codes_and_length(key):
     length_key = len(key)
-    n_1 = math.ceil(length_key/1944.0)
-    n_2 = math.ceil(length_key/4000.0)
-    if n_1*1944 < n_2 * 4000 :
-        a = length_key/n_1
-        return a, codes_from_file("/home/felix/QKD_felix/src/reconciliation/QKD_LDPC_python/codes_1944.txt") 
-    a = length_key/n_2
-    return a,n_1, codes_from_file("/home/felix/QKD_felix/src/reconciliation/QKD_LDPC_python/codes_4000.txt") 
+    n_1 = math.modf(length_key,1944.0)
+    n_2 = math.modf(length_key,4000.0)
+    if n_1 < n_2 :
+        return 1944, codes_from_file("/home/felix/QKD_felix/src/reconciliation/QKD_LDPC_python/codes_1944.txt") 
+    return 4000, codes_from_file("/home/felix/QKD_felix/src/reconciliation/QKD_LDPC_python/codes_4000.txt") 
 
 
 def shannon(p):
     return  -p / math.log2(p) - (1-p) / math.log2(1-p)
 
 def calc_params(k,n,R_range,qber):
-
+    s,p =0
     Rate = 1 - shannon(qber)
     R_min = min(abs(x - Rate) for x in R_range)
-    s = n-k
-    p = -(k-s)/R_min - s+n
+    if Rate < R_min:
+        s = k- Rate * n / (1 - Rate)
+    else:
+        p = n - k/Rate
     return R_min,s,p
 
 
@@ -43,9 +43,15 @@ def ldpc(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True,
     R_range = []
     for code in codes:
         R_range.append(code[0])
-    # calculate how many bits have to be punctured or added
-    #R, s_n, p_n = ec.choose_sp(qber_est, f_start, R_range, n)
-    R, s_n, p_n = calc_params(len(correct_key), n, R_range)
+
+    k = n-code[2]
+    s_n,p_n =0
+    Rate = 1 - shannon(qber)
+    R_min = min(abs(x - Rate) for x in R_range)
+    if Rate < R_min:
+        s = k- Rate * n / (1 - Rate)
+    else:
+        p = n - k/Rate
 
     print(f"R range is: {np.sort(R_range)}")
 
@@ -70,25 +76,23 @@ def ldpc(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True,
     error_map = []
     com_iters_counter = 0
     for faulty_chunk, correct_chunk in zip(faulty_blocks, correct_blocks):
-        # If the last chunk is smaller, pad it with 0s
+        # If the last chunk is smaller, more shortened bits
         if len(faulty_chunk) < payload_per_block:
-            pad_len = payload_per_block - len(faulty_chunk)
-            faulty_chunk = np.pad(faulty_chunk, (0, pad_len), 'constant')
-            correct_chunk = np.pad(correct_chunk, (0, pad_len), 'constant')
-        
+            p_n = 0
+            s_n = n-faulty_chunk
         add_info, com_iters, dec_chunk, ver_check = ec.perform_ec(
             faulty_chunk, correct_chunk, s_y_joins, y_s_joins, qber_est,qber_est_0, s_n, p_n, 
             punct_list=punct_list, discl_n=discl_n, show=1,twinfield=twinfield
         )
-
-        disclosed_info += len(s_y_joins) - s_n +add_info
+        this_iteration_disclosed =  len(s_y_joins) - s_n +add_info
+        disclosed_info += this_iteration_disclosed
         com_iters_counter += com_iters
-        
-        # Trim padding if last chunk was padded
-        if len(faulty_chunk) > len(error_map_chunk := dec_chunk[:len(faulty_chunk) - pad_len if 'pad_len' in locals() else len(dec_chunk)]):
-            error_map.append(error_map_chunk)
-        else:
-            error_map.append(dec_chunk)
+
+        #remove so much bits as were disclosed
+        arr2 = np.arange(0,len(correct_key))
+        np.random.shuffle(arr2)
+        arr = arr2[len(correct_key)-this_iteration_disclosed:]
+        error_map.append(dec_chunk[arr])
 
     error_map = np.concatenate(error_map)
     faulty_key = np.asarray(faulty_key, dtype=np.uint8)
@@ -98,12 +102,7 @@ def ldpc(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True,
     print("Total remaining errors: " + str(np.sum(remaining_errors)))
     print("remaining errorrate: " + str(np.mean(remaining_errors)))
 
-    #remove so much bits as were disclosed
-    arr2 = np.arange(0,len(correct_key))
-    np.random.shuffle(arr2)
-    arr = arr2[len(correct_key)-n:]
-
-    return correct_key[arr],corrected_key[arr], disclosed_info, com_iters_counter
+    return correct_key,corrected_key, disclosed_info, com_iters_counter
 
 
 

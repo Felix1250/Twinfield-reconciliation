@@ -17,7 +17,7 @@ import aopp
 import ldpc
 import hashing
 
-def simulate_physics(path,pd = math.pow(10,-5) , eta  =0.8, ea = 0.15,distance = 0,length = 1000):
+def simulate_physics(path,pd = math.pow(10,-5) , eta  =0.8, ea = 0.15,distance = 0,length = 10000000, enable_twinfield=False):
     twin =twinfield_communication_tensorflow.Twinfield()
 
     loss_db_per_km = 0.2 # km
@@ -47,7 +47,7 @@ def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled =
     error_rate = 0
 
     if ldpc_enabled:
-        alice_key, bob_key,disclosed_info,comm_iters = ldpc.ldpc(alice_key_1, bob_key_1, twin._ez,twin.pd0,twinfield=True)
+        alice_key, bob_key,disclosed_info,comm_iters = ldpc.ldpc(alice_key, bob_key, twin._ez,twin.pd0,twinfield = enable_twinfield)
     if hash_enabled:
         alice_key, bob_key = hashing.priv_ampl(alice_key, bob_key, twin._ex1,n_1)
     signal_length = len(alice_key)
@@ -55,6 +55,20 @@ def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled =
         error_rate = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))        
     key_rate = (len(alice_key))/twin._N_pulses
     return signal_length, error_rate , key_rate , comm_iters
+
+def save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = "temp.csv"):
+    data = []
+    for i in range(len(key_rate)):
+        data.append([])
+        data[i].append(key_rate[i])
+        data[i].append(error_rate[i])
+        data[i].append(labels[i])
+        data[i].append(signal_length[i])
+        data[i].append(comm_iters[i])
+    with open(csv_savepath, mode="w", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+        writer.writerows(data)
+
 
 def plot_general(key_rate, error_rate,labels,image_savepath,x_label = "",csv_savepath = "temp.csv"):
 

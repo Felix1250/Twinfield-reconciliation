@@ -126,7 +126,7 @@ class Twinfield:
 
     # variables for aftercomm
 
-    n_phaseSlice = 16 #number of phase slices
+    n_phaseSlice = 4 #number of phase slices
     s_phaseSlice = 1 /n_phaseSlice
 
     batch_size = 16000 # defines the size for each batch of single photon events
@@ -369,8 +369,9 @@ class Twinfield:
             print("warning! not enough decoy window data.")
             print("---------------------------------------")
         
-    def aftercomm(cls,alice_bits,bob_bits,measures,length,psi_AB,aopp_enabled = False):
-        cls.s_phaseSlice = 1* math.pi /cls.n_phaseSlice
+    def aftercomm(cls,alice_bits,bob_bits,measures,length,psi_AB,aopp_enabled = False,distance = 0):
+        cls.s_phaseSlice = 0.25 + 0.45/450 * distance
+
         print("s phase",str(cls.s_phaseSlice))
         print("n phase",str(cls.n_phaseSlice))
         counter_signal_window = 0 # counts how many signal windows  exist
@@ -383,7 +384,8 @@ class Twinfield:
             # still have to figure out what to do with the phase
             if alice_bits[0][i] == 0 and bob_bits[0][i] == 0: # check whether both use the Z basis
                 if alice_bits[1][i] == bob_bits[1][i]:
-                    if 1-abs(math.sin(alice_bits[2][i]-bob_bits[2][i] + psi_AB[i])) <= abs(cls.s_phaseSlice): 
+                    #if 1-abs(math.sin(alice_bits[2][i]-bob_bits[2][i] + psi_AB[i])) <= abs(cls.s_phaseSlice): 
+                    if abs(abs(alice_bits[2][i]-bob_bits[2][i] + psi_AB[i]) - math.pi/2) <= cls.s_phaseSlice:
                         if measures[i][0] == 0 and measures[i][0] != measures[i][1]: #only if detector 2 clicks
                             decoy_bits.append((i,1))
                         elif measures[i][1] == 0 and measures[i][0] != measures[i][1]: #only if detector 1 clicks
