@@ -3,4 +3,5 @@
 *.png
 *.csv
 *.pyc
+*.txt
 results/*

@@ -14,16 +14,18 @@ sys.path.append(cw_path + "/src/reconciliation")
 import tf_utils
 import twinfield_communication_tensorflow
 import aopp
-import ldpc
+import ldpc2
 import hashing
 
-def simulate_physics(path,pd = math.pow(10,-5) , eta  =0.8, ea = 0.15,distance = 0,length = 100000000):
+def simulate_physics(path,pd = math.pow(10,-5) , eta  =0.8, ea = 0.15,distance = 0,pz = 1 - 0.269,mu = 0.422,length = 10000000):
     twin =twinfield_communication_tensorflow.Twinfield()
 
     loss_db_per_km = 0.2 # km
     total_loss_db = loss_db_per_km * distance  # 30 dB
     transmittance = 10 ** (-total_loss_db / 10)
 
+    twin.mu3 = mu
+    twin.p_z = pz
     twin.pd0 = pd
     twin.pd1 = pd
     twin.eta1 = eta
@@ -34,7 +36,6 @@ def simulate_physics(path,pd = math.pow(10,-5) , eta  =0.8, ea = 0.15,distance =
 
     twin.tf_communicate(tf_utils.generate_seed(),tf_utils.generate_seed(),length,path)
 
-    print("hey i was doing something")
 
 def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled = False, enable_twinfield=True):
     twin =twinfield_communication_tensorflow.Twinfield()
@@ -46,8 +47,9 @@ def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled =
     comm_iters = 0
     error_rate = 0
 
+    print(dir(ldpc2))
     if ldpc_enabled:
-        alice_key, bob_key,disclosed_info,comm_iters = ldpc.ldpc(alice_key, bob_key, twin._ez,twin.pd0,twinfield = enable_twinfield)
+        alice_key, bob_key,disclosed_info,comm_iters = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._ez,qber_est_0 =twin.pd0,twinfield = enable_twinfield)
     if hash_enabled:
         alice_key, bob_key = hashing.priv_ampl(alice_key, bob_key, twin._ex1,n_1)
     signal_length = len(alice_key)
@@ -114,10 +116,13 @@ def main():
     parser.add_argument("--eta", type=float, default=0.8, help="Efficiency.")
     parser.add_argument("--ea", type=float, default=0.15, help="Phase shift average.")
     parser.add_argument("--distance", type=float, default=0.0, help="Distance in km.")
+    parser.add_argument("--pz", type=float, default=1 - 0.269, help="probability of sending vacuum in signal")
+    parser.add_argument("--mu", type=float, default=0.422, help="mu of signal window")
+    parser.add_argument("--length", type=float, default=1000, help="mu of signal window")
 
     args = parser.parse_args()
     print(args)
-    simulate_physics(args.savefile, args.pd, args.eta, args.ea, args.distance)
+    simulate_physics(args.savefile, args.pd, args.eta, args.ea, args.distance,args.pz,args.mu)
 
 if __name__ == "__main__":
     main()

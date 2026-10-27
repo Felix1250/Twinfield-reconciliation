@@ -55,14 +55,14 @@ def make_odd_parity_pairs(key):
     #for i in range(0, len(remaining) - 1, 2):
     #    pairs.append((remaining[i], remaining[i + 1]))
         
-    return np.array(pairs)
+    return np.array(pairs),len(zeros), len(ones)
 
 
 
 def aopp(alice_key,bob_key):
     print("aopp start")
     orig_len = len(bob_key)     
-    pairs = make_odd_parity_pairs(bob_key)
+    pairs,N0,N1 = make_odd_parity_pairs(bob_key)
     #bit mask that if = 1 keeps the bit
     drop_bits = np.zeros(len(bob_key))
     print("aopp start 2")
@@ -77,7 +77,7 @@ def aopp(alice_key,bob_key):
 
         if parity_bob == parity_alice:
             select_bit = random.randint(0,1)
-            drop_bits[pairs[i][select_bit]] = 1
+            drop_bits[pairs[i][select_bit]] = 1 #if this bit is one it is kept otherwise not
     aopp_length = np.count_nonzero(drop_bits)
     alice_key_aopp = np.zeros(aopp_length)
     bob_key_aopp=  np.zeros(aopp_length)
@@ -92,4 +92,4 @@ def aopp(alice_key,bob_key):
     if orig_len != 0:
         print("percentage of original key: " + str(aopp_length/orig_len))
     tf_utils.print_error_rate(alice_key_aopp,bob_key_aopp)
-    return alice_key_aopp,bob_key_aopp
+    return alice_key_aopp,bob_key_aopp, N0,N1

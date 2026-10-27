@@ -11,7 +11,7 @@ sys.path.append("/home/felix/QKD_felix/src/reconciliation/QKD_LDPC_python")
 import tf_utils
 import twinfield_communication_tensorflow
 import aopp
-import ldpc
+import ldpc2
 import math
 
 
@@ -325,8 +325,8 @@ def graph_compare_LDPC(generate = False):
         alice_key_1 = alice_key.copy()
         bob_key_1 = bob_key.copy()
         if np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int))) > 0:
-            alice_key, bob_key,disclosed_info,comm_iters[0][i] = ldpc.ldpc(alice_key_1, bob_key_1, np.mean(np.abs(alice_key_1.astype(int) - bob_key_1.astype(int))),twin.pd0,twinfield=True)
-            alice_key, bob_key,disclosed_info,comm_iters[1][i] = ldpc.ldpc(alice_key_1, bob_key_1, np.mean(np.abs(alice_key_1.astype(int) - bob_key_1.astype(int))),twin.pd0,twinfield=False)
+            alice_key, bob_key,disclosed_info,comm_iters[0][i] = ldpc.ldpc1(alice_key_1, bob_key_1, np.mean(np.abs(alice_key_1.astype(int) - bob_key_1.astype(int))),twin.pd0,twinfield=True)
+            alice_key, bob_key,disclosed_info,comm_iters[1][i] = ldpc.ldpc1(alice_key_1, bob_key_1, np.mean(np.abs(alice_key_1.astype(int) - bob_key_1.astype(int))),twin.pd0,twinfield=False)
         signal_lengths[2][i] = len(alice_key)- disclosed_info
         if len(alice_key) > 0:
             error_rate[2][i] = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))

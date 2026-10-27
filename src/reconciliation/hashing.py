@@ -13,10 +13,10 @@ error =  math.pow(10,-20)
 def after_EC(alice_key: np.ndarray, bob_key: np.ndarray, seed: np.ndarray = np.empty(0, dtype=np.uint8)):
     if len(alice_key) != len(bob_key):
         raise ValueError("Alice and Bob keys must have the same length.")
+    m = math.ceil(math.log2(1/error))
     if seed.size == 0:
         seed = np.random.randint(0, 2, size=alice_key.size + m - 1, dtype=np.uint8)
 
-    m = math.log2(1/error)
     n = len(alice_key)
     p = n + m - 1
     seed_slice = seed[:p]
@@ -32,13 +32,18 @@ def after_EC(alice_key: np.ndarray, bob_key: np.ndarray, seed: np.ndarray = np.e
 
 
 def calc_m(length_key_before_reconciliation,e_ph):
-    H = - e_ph * math.log2(e_ph) - (1 - e_ph)  * math.log2(1 - e_ph)
+    if e_ph <= 0 or e_ph >= 1:
+        H = 0
+    else:
+        H = - e_ph * math.log2(e_ph) - (1 - e_ph)  * math.log2(1 - e_ph)
     factor =   - math.log2(2/error) - 2 * math.log2( 1 / ( math.sqrt(2) * error * error))
-    return length_key_before_reconciliation * (1-H) + factor 
+    return max(math.ceil(length_key_before_reconciliation * (1-H) + factor),0)
 
 def scipy_toeplitz_hash_with_matrix(alice_key: np.ndarray, bob_key: np.ndarray, m: int, seed: np.ndarray = np.empty(0, dtype=np.uint8)):
     if len(alice_key) != len(bob_key):
         raise ValueError("Alice and Bob keys must have the same length.")
+    if m == 0:
+        return [],[]
     if seed.size == 0:
         seed = np.random.randint(0, 2, size=alice_key.size + m - 1, dtype=np.uint8)
     
@@ -54,5 +59,7 @@ def scipy_toeplitz_hash_with_matrix(alice_key: np.ndarray, bob_key: np.ndarray, 
     return alice_hash, bob_hash
 
 def priv_ampl(alice_key: np.ndarray, bob_key: np.ndarray, eph:float,n_1:int):
+   
     alice_key2,bob_key2  = after_EC(alice_key,bob_key)
+    m = calc_m(n_1,eph)
     return scipy_toeplitz_hash_with_matrix(alice_key2,bob_key2,m)

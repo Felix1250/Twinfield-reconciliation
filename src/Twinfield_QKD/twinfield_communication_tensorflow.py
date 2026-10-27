@@ -8,6 +8,7 @@ import multiprocessing as mp
 from tqdm import tqdm
 import gc
 import sys
+from scipy.optimize import fsolve
 
 
 import tf_utils
@@ -127,18 +128,16 @@ class Twinfield:
     # variables for aftercomm
 
     n_phaseSlice = 4 #number of phase slices
-    s_phaseSlice = 1 /n_phaseSlice
+    s_phaseSlice = 1 /n_phaseSlice # this just needs to be 0.25 
 
     batch_size = 16000 # defines the size for each batch of single photon events
     n_percentage = 0.05
 
     #variables for export
     _error_rate = 0
-    _emu1 = 0
-    _emu2 = 0
-    _emu3 = 0
-    _ex1 = 0
-    _ex2 = 0
+    _N0 = 0
+    _N1 = 0
+    _n1 = 0
     _ez = 0
     _ex = 0
     _decoy_length = 0
@@ -147,6 +146,9 @@ class Twinfield:
     _signal_length = 0
 
     _N_pulses = 0
+
+    _emu1 = 0
+    _emu2= 0
     
 
     def generate_random_phaseShift(cls,length):
@@ -271,51 +273,70 @@ class Twinfield:
         return alice_key[arr],bob_key[arr]
 
 
-    def calc_ez(cls,alice_key,bob_key,n,counter_signal_window):
-        if n > len(alice_key):
-            print("too many error test bits for key length")
-            return alice_key,bob_key
-        if n == 0:
-            return alice_key,bob_key
-        arr2 = np.arange(0,len(alice_key))
-        np.random.shuffle(arr2)
-        arr_test = arr2[:n]
-        arr = arr2[len(alice_key)-n:]
-        counter_NN = 0
-        counter_SN = 0
-        counter_SS = 0
-        for i in range(len(arr_test)):
-            if alice_key[arr_test[i]] == 1 and bob_key[arr_test[i]] == 1:
-                counter_SS += 1
-            elif alice_key[arr_test[i]] == 0 and bob_key[arr_test[i]] == 0:
-                counter_NN += 1     
-            else:
-                counter_SN += 1
-        print("---------------------------------------")
-        print("NN in signal window: " + str(counter_NN))
-        print("NS/SN in signal window: " + str(counter_SN/counter_signal_window))
-        print("SS in signal window: " + str(counter_SS/counter_signal_window))
-        cls._ez = Ez = (counter_NN + counter_SS) / n
-        print("Error rate of subset: " + str(Ez))
-        print("---------------------------------------")
-        return alice_key[arr],bob_key[arr]
 
-    def calc_ex(cls,alice_bits,bob_bits,decoy_bits):
+
+    def calc_ex(cls,alice_bits,bob_bits,decoy_bits,aopp_enabled):
+        xi = 1e-10
+        log_xi2 = np.log(xi / 2)
+        def delta_1(delta1, X):
+            if delta1 <= -1:
+                return 1e9
+            return (X / (1 + delta1)) * (delta1 - (1 + delta1) * np.log(1 + delta1)) - log_xi2
+
+        def delta_2(delta2, X):
+            if delta2 >= 1 or delta2 <= 0:
+                return 1e9
+            return (X / (1 - delta2)) * (-delta2 - (1 - delta2) * np.log(1 - delta2)) - log_xi2
+
+        def phi_L_s(X):
+            if X == 0:
+                return 0.0
+            delta_1_val = fsolve(delta_1, x0=0.1, args=(X))[0]
+            return X / (1 + delta_1_val)
+
+        def phi_U_S(X):
+            if X == 0:
+                return 0.0
+            delta_2_val = fsolve(delta_2, x0=0.1, args=(X))[0]
+            return X / (1 - delta_2_val)
+
+
+        def delta_1line(delta1, Y):
+            if delta1 <= -1:
+                return 1e9
+            return Y * (delta1 - (1 + delta1) * np.log(1 + delta1)) - log_xi2
+        
+        def delta_2line(delta2, Y):
+            if delta2 >= 1:
+                return 1e9
+            return Y * (-delta2 - (1 - delta2) * np.log(1 - delta2)) - log_xi2
+
+        def phi_U(Y):
+            initial_guess = 0.1
+            delta_1_val = fsolve(delta_1line, x0=initial_guess, args=(Y))[0]
+            return (1+ delta_1_val) * Y
+
+        def phi_L(Y):
+            initial_guess = 0.1
+            delta_2_val = fsolve(delta_2line, x0=initial_guess, args=(Y))[0]
+            return (1.0-delta_2_val) * Y
+
+
         if len(decoy_bits) == 0:
             print("no decoy bits")
             return
-        s0 = 0
-        smu1 = 0; smu2 = 0
-        s01 = 0 ; s02 = 0 
-        s10 = 0 ; s20 = 0 
+        n0 = 0; N0 = 0
+        n01 = 0 ; n02 = 0 ;N01 = 0 ; N02 = 0 
+        n10 = 0 ; n20 = 0 ;N10 = 0 ; N20 = 0
         n11pos = 0; n11neg = 0
         N11pos = 0; N11neg = 0
         for i in range(len(decoy_bits)):  
             x = decoy_bits[i][0]
             if alice_bits[1][x] == 0 and bob_bits[1][x] == 0:
-                s0 +=1
+                N0 +=1
+                if decoy_bits[i][1] != -1: n0 +=1                
             elif alice_bits[1][x] == 1 and bob_bits[1][x] == 1:
-                smu1 +=1
+                #smu1 +=1
                 if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) < 0:
                     N11neg +=1
                     if decoy_bits[i][1] == 0:
@@ -326,50 +347,99 @@ class Twinfield:
                     if decoy_bits[i][1] == 1:
                         n11pos +=1
                         cls._emu1 +=1
-            elif alice_bits[1][x] == 2 and bob_bits[1][x] == 2:
-                smu2 +=1
-                if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) < 0 and decoy_bits[i][1] == 0:
-                    cls._emu2 +=1
-                if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) > 0 and decoy_bits[i][1] == 1:
-                    cls._emu2 +=1
+            #elif alice_bits[1][x] == 2 and bob_bits[1][x] == 2:
+            #    smu2 +=1
+            #    if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) < 0 and decoy_bits[i][1] == 0:
+            #        cls._emu2 +=1
+            #    if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) > 0 and decoy_bits[i][1] == 1:
+            #        cls._emu2 +=1
             elif alice_bits[1][x] == 0 and bob_bits[1][x] == 1:
-                s01 +=1
+                N01 +=1
+                if decoy_bits[i][1] != -1: n01 +=1    
             elif alice_bits[1][x] == 1 and bob_bits[1][x] == 0:
-                s10 +=1
+                N10 +=1
+                if decoy_bits[i][1] != -1: n10 +=1    
             elif alice_bits[1][x] == 0 and bob_bits[1][x] == 2:
-                s02 +=1
+                N02 +=1
+                if decoy_bits[i][1] != -1: n02 +=1    
             elif alice_bits[1][x] == 2 and bob_bits[1][x] == 0:
-                s20 +=1
-        if smu1 != 0:
-            cls._emu1 = cls._emu1/smu1
-        if smu2 != 0:
-            cls._emu2 = cls._emu2/smu2
-        s0 = s0/len(decoy_bits)
-        smu1 = smu1/len(decoy_bits)
-        smu2 = smu2/len(decoy_bits)
+                N20 +=1
+                if decoy_bits[i][1] != -1: n20 +=1    
 
-        p2mu1 = 2 * cls.mu2 * cls.mu2 * math.pow(math.e,-cls.mu1)
-        p1mu2 = 2 * cls.mu1 * cls.mu1 * math.pow(math.e,-cls.mu2)
-        mu1mu2 = cls.mu1 * cls.mu2 *(cls.mu2-cls.mu1) 
+        s0 = n0 / N0 if N0 != 0 else 0.0
+        s01 = n01/N01 if N01 != 0 else 0.0
+        s10 = n10/N10 if N10 != 0 else 0.0
+        s02 = n02/N02 if N02 != 0 else 0.0
+        s20 = n20/N20 if N20 != 0 else 0.0
+
+
+
+        _s0 = phi_U_S(n0)/N0 if N0 != 0 else 0.0
+        _s02 = phi_U_S(n02)/N02 if N02 != 0 else 0.0
+        _s20 = phi_U_S(n20)/N20 if N20 != 0 else 0.0
+        s01_ = phi_L_s(n01)/N01 if N01 != 0 else 0.0
+        s10_ = phi_L_s(n10)/N10 if N10 != 0 else 0.0
+
+        print( s01_* N01)
+        print( s10_* N10)
+        p2mu1 = cls.mu2 * cls.mu2 * math.pow(math.e,cls.mu1)
+        p1mu2 = cls.mu1 * cls.mu1 * math.pow(math.e,cls.mu2)
+        mu1mu2 = 2* cls.mu1 * cls.mu2 *(cls.mu2-cls.mu1) 
+        print("probabilities ------------------")
+        print(mu1mu2)
+        print(p2mu1)
+        print(p1mu2)
+        print(math.pow(math.e,-cls.mu2))
         s1 = 0
         if mu1mu2!= 0:
-            s1 = (p2mu1 * (s01 + s10) - p1mu2 * (s02 + s20)- (cls.mu2-cls.mu1) *s0) / (mu1mu2)
+            s1 = (p2mu1 * (s01_ + s10_) - p1mu2 * (_s02 + _s20)- 2*(cls.mu2*cls.mu2-cls.mu1*cls.mu1) *_s0) / (mu1mu2)
+            print("this happened")
+            print("s01 " + str(s01_))
+            print("s10 " + str(s10_))
+            print("s02 " + str(s02))
+            print("s20 " + str(s20))
+            print("s0 " + str(s0))
+            print("S1 " +str(s1))
         if s1 != 0:
             T= 1/2 * (n11pos / N11pos + n11neg / N11neg) 
-            cls._ex1 =(T- 1/2*math.pow(math.e,-2 *cls.mu1)/(2*cls.mu1 * math.pow(math.e,-2 *cls.mu1) * s1))
-  
+            print("n10: " + str(n10))
+            print("n01: " + str(n01))
+            print("N10: " + str(N10))
+            print("N01: " + str(N01))
+            print("T" + str(T))
+            ephi =(T- 1/2*math.pow(math.e,-2 *cls.mu1)*s0)/(2*cls.mu1 * math.pow(math.e,-2 *cls.mu1) * s1)
+            N_1 = 2 * (1 - cls.p_x)**2 * cls.p_z * (1 - cls.p_z) * cls.mu3 * math.pow(math.e, -cls.mu3) *len(alice_bits[0])
+            #N_1 = 2 * (1 - 0.2)**2 * cls.p_z * (1 - cls.p_z) * cls.mu3 * math.pow(math.e, -cls.mu3) *len(alice_bits[0])
+
+            print("N1 " +str(N_1))
+            print("thing1: " + str(N_1*s1))
+            n_1 = phi_L(N_1*s1)
+            print("ephi " + str(ephi))
+            print("thing2" + str(ephi *N_1*s1))
+            e_phi = phi_U(ephi *N_1*s1)/(N_1*s1)
+            if not aopp_enabled:
+                cls._n1 = n_1
+            else:
+                print("n1: " + str(n_1))
+                #cls._N0= 6000000; cls._N1 = 6000000
+                Na = min(cls._N0,cls._N1)
+                print("Na: " + str(Na))
+                cls._n1 = (1/2*n_1)/cls._N0 * (1/2*n_1)/cls._N1 *Na
+            cls._ez = e_phi
+            
+            
             print("---------------------------------------")
-            print("_emu1: " + str(cls._emu1))
-            print("_emu2: " + str(cls._emu2))
-            print("exmu1: " + str(cls._ex1))
-            print("exmu2: " + str(cls._ex2))
+            print("n1: " + str(cls._n1))
+            print("eph: " + str(e_phi))
             print("---------------------------------------")
+
         else:
             print("---------------------------------------")
             print("warning! not enough decoy window data.")
             print("---------------------------------------")
         
-    def aftercomm(cls,alice_bits,bob_bits,measures,length,psi_AB,aopp_enabled = False,distance = 0):
+    def aftercomm(cls,alice_bits,bob_bits,measures,length,psi_AB,aopp_enabled = False):
+        distance = (-10 * math.log10(cls.loss_1))/0.2
         cls.s_phaseSlice = 0.25 + 0.45/450 * distance
 
         print("s phase",str(cls.s_phaseSlice))
@@ -383,13 +453,15 @@ class Twinfield:
         for i in tqdm(range(length),"effective events"):
             # still have to figure out what to do with the phase
             if alice_bits[0][i] == 0 and bob_bits[0][i] == 0: # check whether both use the Z basis
-                if alice_bits[1][i] == bob_bits[1][i]:
-                    #if 1-abs(math.sin(alice_bits[2][i]-bob_bits[2][i] + psi_AB[i])) <= abs(cls.s_phaseSlice): 
-                    if abs(abs(alice_bits[2][i]-bob_bits[2][i] + psi_AB[i]) - math.pi/2) <= cls.s_phaseSlice:
-                        if measures[i][0] == 0 and measures[i][0] != measures[i][1]: #only if detector 2 clicks
-                            decoy_bits.append((i,1))
-                        elif measures[i][1] == 0 and measures[i][0] != measures[i][1]: #only if detector 1 clicks
-                            decoy_bits.append((i,0))
+
+                #if 1-abs(math.sin(alice_bits[2][i]-bob_bits[2][i] + psi_AB[i])) <= abs(cls.s_phaseSlice): 
+                if abs(abs(alice_bits[2][i]-bob_bits[2][i] + psi_AB[i]) - math.pi/2) <= cls.s_phaseSlice:
+                    if measures[i][0] == 0 and measures[i][0] != measures[i][1]: #only if detector 2 clicks
+                        decoy_bits.append((i,1))
+                    elif measures[i][1] == 0 and measures[i][0] != measures[i][1]: #only if detector 1 clicks
+                        decoy_bits.append((i,0))
+                    else:
+                        decoy_bits.append((i,-1))
             elif alice_bits[0][i] == 1 and bob_bits[0][i] == 1: #check whether both use the x basis
                 counter_signal_window += 1
                 #check phase slices
@@ -419,13 +491,13 @@ class Twinfield:
         tf_utils.make_heatmap(measures,"figures/heatmap.png")  
 
         if aopp_enabled:
-            alice_key, bob_key = aopp.aopp(alice_key,bob_key)
+            alice_key, bob_key,cls._N0,cls._N1 = aopp.aopp(alice_key,bob_key)
         # do analysis on the signal window
         n = max(1000, math.floor(len(alice_key)*cls.n_percentage))
         alice_key,bob_key = cls.calc_ez(alice_key,bob_key,n,counter_signal_window)
         # analyze the decoy window
         if len(decoy_bits) > 0:
-            cls.calc_ex(alice_bits,bob_bits,decoy_bits)
+            cls.calc_ex(alice_bits,bob_bits,decoy_bits,aopp_enabled)
         else:
             print("there are no decoy bits lol!")
 

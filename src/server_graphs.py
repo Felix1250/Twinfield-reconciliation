@@ -56,6 +56,8 @@ class Twinfield_job(paralell.BaseJob):
         eta: float = 0.8,
         ea: float = 0.15,
         distance: float = 0,
+        pz = 1 - 0.269,
+        mu = 0.422
     ) -> None:
         super().__init__(base_path)
         self.savefile = savefile
@@ -63,11 +65,13 @@ class Twinfield_job(paralell.BaseJob):
         self.eta = eta
         self.ea = ea
         self.distance = distance
+        self.pz = pz
+        self.mu = mu
 
 
     @override
     def name(self) -> str:
-        return f"twinfield_pd5{self.pd}_eta{self.eta}_ea{self.ea}_dist{self.distance}"
+        return f"twinfield_pd1{self.pd}_eta{self.eta}_ea{self.ea}_dist{self.distance}_pz{self.pz}_mu{self.mu}"
 
     def get_argv(self) -> list[str]:
         return [
@@ -83,6 +87,10 @@ class Twinfield_job(paralell.BaseJob):
             str(self.ea),
             "--distance",
             str(self.distance),
+            "--pz",
+            str(self.pz),
+            "--mu",
+            str(self.mu),
         ]
 
 '''
@@ -167,6 +175,20 @@ def generate_dist_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
             ea=0.15,
             distance=i/datapoints*350, #max 350km one side so 700km total
         )
+
+def generate_pzmu_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
+    datapoints = 5
+    savefolder = os.getcwd() + "/saves/pzmu"
+    Path(savefolder).parent.mkdir(parents=True, exist_ok=True)
+    for i in range(datapoints):
+        for j in range(datapoints):
+            savefile = savefolder + "/_pz" + str(i) + "mu" + str(j) +".npz"
+            yield Twinfield_job(
+                base_path=base_path,
+                savefile=savefile,
+                mu=0.25 + j/20,
+                pz=1- (0.1+i/20)
+            )
     
 '''
 ---------------------------------------------------------------------------------
@@ -177,13 +199,7 @@ functions to create the jobs and run them in parallel, one job per CPU core
 def pd():
     result_dir: Path = Path.cwd() / "results"
     gen = generate_pd_jobs(result_dir)
-    paralell.schedule(gen)
-
-def dist():
-    result_dir: Path = Path.cwd() / "results"
-    gen = generate_dist_jobs(result_dir)
-    paralell.schedule(gen)
-
+    paralell.schedule(gen,max_parallel_jobs=6)
 
 def eta():
     result_dir: Path = Path.cwd() / "results/eta"
@@ -198,6 +214,11 @@ def ea():
 def dist():
     result_dir: Path = Path.cwd() / "results"
     gen = generate_dist_jobs(result_dir)
+    paralell.schedule(gen)
+
+def pzmu():
+    result_dir: Path = Path.cwd() / "pzmu"
+    gen = generate_pzmu_jobs(result_dir)
     paralell.schedule(gen)
 
 '''
@@ -250,7 +271,7 @@ def ea_rest():
         signal_length, error_rate[i] , key_rate[i] , comm_iters=general_graphs.simulate_comm(savefile)
     general_graphs.plot_general(key_rate, error_rate,labels,os.getcwd() + "/figures/my_graph/ea.png",x_label="'$e_a$",csv_savepath = os.getcwd() + "/figures/my_graph/ea.csv")
 
-def dist_ldpc(enable_twinfield=True,aopp_enabled = False):
+def dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True):
     savefolder = os.getcwd() + "/saves/dist"
     datapoints = 50
     comm_iters = np.zeros(datapoints)
@@ -261,12 +282,12 @@ def dist_ldpc(enable_twinfield=True,aopp_enabled = False):
     for i in range(datapoints):
         savefile = savefolder + "/_dist" + str(i) + ".npz"
         labels.append(i/50*700)
-        signal_length[i], error_rate[i], key_rate[i], comm_iters[i]=general_graphs.simulate_comm(savefile,aopp_enabled = aopp_enabled,ldpc_enabled = True, enable_twinfield=enable_twinfield)
+        signal_length[i], error_rate[i], key_rate[i], comm_iters[i]=general_graphs.simulate_comm(savefile,aopp_enabled = aopp_enabled,ldpc_enabled = True, enable_twinfield=enable_twinfield,hash_enabled=hash_enabled)
     general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/dist_" + str(enable_twinfield) + ".csv")
 
 def dist_general(things = 0,aopp_enabled = True,hash_enabled = True,ldpc_enabled = True):
     savefolder = os.getcwd() + "/saves/dist"
-    datapoints = 50
+    datapoints = 5
     comm_iters = np.zeros(datapoints)
     key_rate = np.zeros(datapoints)
     signal_length = np.zeros(datapoints)
@@ -278,11 +299,32 @@ def dist_general(things = 0,aopp_enabled = True,hash_enabled = True,ldpc_enabled
         signal_length[i], error_rate[i], key_rate[i], comm_iters[i]=general_graphs.simulate_comm(savefile,aopp_enabled = aopp_enabled,ldpc_enabled = ldpc_enabled,hash_enabled = hash_enabled, enable_twinfield=True)
     general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/dist" + str(things) + ".csv")
 
+def pzmu_rest(aopp_enabled = True,hash_enabled = True,ldpc_enabled = True):
+    things = 0
+    savefolder = os.getcwd() + "/saves/pzmu"
+    datapoints = 5
+    for i in range(datapoints):
+        comm_iters = np.zeros(datapoints)
+        key_rate = np.zeros(datapoints)
+        signal_length = np.zeros(datapoints)
+        error_rate = np.zeros(datapoints)
+        labels = []
+        for j in range(datapoints):
+            savefile =savefolder + "/_pz" + str(i) + "mu" + str(j) +".npz"
+            labels.append(i*100+j)
+            signal_length[j], error_rate[j], key_rate[j], comm_iters[j]=general_graphs.simulate_comm(savefile,aopp_enabled = aopp_enabled,ldpc_enabled = ldpc_enabled,hash_enabled = hash_enabled, enable_twinfield=True)
+        things += 1
+        general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/pzmu" + str(things) + ".csv")
+
+
+
 if __name__ == "__main__":
     #ea()
     #eta()
     #pd()
     #pd_rest()
-    pd_rest_aopp()
+    #dist()
+    pzmu()
+    #pd_rest_aopp()
     #dist_ldpc(enable_twinfield = True)
     #dist_ldpc(enable_twinfield = False)

@@ -61,5 +61,5 @@ def print_available_code_ranges():
         print("R: ",codes[(code[0], n)]['R'])
         print("----------------------------------------")
 
-
+#print_available_code_ranges()
 
