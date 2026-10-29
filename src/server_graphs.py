@@ -287,7 +287,7 @@ def dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True):
 
 def dist_general(things = 0,aopp_enabled = True,hash_enabled = True,ldpc_enabled = True):
     savefolder = os.getcwd() + "/saves/dist"
-    datapoints = 5
+    datapoints = 50
     comm_iters = np.zeros(datapoints)
     key_rate = np.zeros(datapoints)
     signal_length = np.zeros(datapoints)
@@ -324,7 +324,9 @@ if __name__ == "__main__":
     #pd()
     #pd_rest()
     #dist()
-    pzmu()
-    #pd_rest_aopp()
-    #dist_ldpc(enable_twinfield = True)
-    #dist_ldpc(enable_twinfield = False)
+    #pzmu()
+
+    pd_rest_aopp()
+    dist_ldpc(enable_twinfield = True)
+    dist_ldpc(enable_twinfield = False)
+    pzmu_rest()
