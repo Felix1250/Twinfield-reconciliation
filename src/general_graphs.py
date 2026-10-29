@@ -43,15 +43,14 @@ def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled =
 
     alice_key, bob_key = twin.tf_communicat_load(path,aopp_enabled = aopp_enabled)
 
-    n_1 = len(alice_key)
     comm_iters = 0
     error_rate = 0
 
     print(dir(ldpc2))
     if ldpc_enabled:
-        alice_key, bob_key,disclosed_info,comm_iters = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._ez,qber_est_0 =twin.pd0,twinfield = enable_twinfield)
+        alice_key, bob_key,disclosed_info,comm_iters = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._esignal,qber_est_0 =twin.pd0,twinfield = enable_twinfield)
     if hash_enabled:
-        alice_key, bob_key = hashing.priv_ampl(alice_key, bob_key, twin._ex1,n_1)
+        alice_key, bob_key = hashing.priv_ampl(alice_key, bob_key, twin._ephi,twin._n1)
     signal_length = len(alice_key)
     if len(alice_key) > 0:
         error_rate = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))        

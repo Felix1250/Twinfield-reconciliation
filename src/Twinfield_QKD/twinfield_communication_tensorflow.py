@@ -138,8 +138,8 @@ class Twinfield:
     _N0 = 0
     _N1 = 0
     _n1 = 0
-    _ez = 0
-    _ex = 0
+    _esignal = 0
+    _ephi = 0
     _decoy_length = 0
     
     _error_number = 0
@@ -257,18 +257,19 @@ class Twinfield:
         counter_SN = 0
         counter_SS = 0
         for i in range(len(arr_test)):
-            if alice_key[arr_test[i]] == 1 and bob_key[arr_test[i]] == 1:
+            if alice_key[arr_test[i]] == 1 and bob_key[arr_test[i]] == 0:
                 counter_SS += 1
-            elif alice_key[arr_test[i]] == 0 and bob_key[arr_test[i]] == 0:
+            elif alice_key[arr_test[i]] == 0 and bob_key[arr_test[i]] == 1:
                 counter_NN += 1     
             else:
                 counter_SN += 1
         print("---------------------------------------")
+        print("number of check bits n: " + str(n))
         print("NN in signal window: " + str(counter_NN))
-        print("NS/SN in signal window: " + str(counter_SN/counter_signal_window))
-        print("SS in signal window: " + str(counter_SS/counter_signal_window))
-        cls._ex = Ez = (counter_NN + counter_SS) / n
-        print("Error rate of subset: " + str(Ez))
+        print("NS/SN in signal window: " + str(counter_SN))
+        print("SS in signal window: " + str(counter_SS))
+        cls._esignal = (counter_NN + counter_SS) / n
+        print("Error rate of subset: " + str(cls._esignal))
         print("---------------------------------------")
         return alice_key[arr],bob_key[arr]
 
@@ -425,7 +426,7 @@ class Twinfield:
                 Na = min(cls._N0,cls._N1)
                 print("Na: " + str(Na))
                 cls._n1 = (1/2*n_1)/cls._N0 * (1/2*n_1)/cls._N1 *Na
-            cls._ez = e_phi
+            cls._ephi = e_phi
             
             
             print("---------------------------------------")
@@ -439,7 +440,10 @@ class Twinfield:
             print("---------------------------------------")
         
     def aftercomm(cls,alice_bits,bob_bits,measures,length,psi_AB,aopp_enabled = False):
-        distance = (-10 * math.log10(cls.loss_1))/0.2
+        if cls.loss_1 >= 0.0001:
+            print(cls.loss_1)
+            distance = (-10 * math.log10(cls.loss_1))/0.2
+        else: distance = 0
         cls.s_phaseSlice = 0.25 + 0.45/450 * distance
 
         print("s phase",str(cls.s_phaseSlice))
@@ -493,7 +497,11 @@ class Twinfield:
         if aopp_enabled:
             alice_key, bob_key,cls._N0,cls._N1 = aopp.aopp(alice_key,bob_key)
         # do analysis on the signal window
-        n = max(1000, math.floor(len(alice_key)*cls.n_percentage))
+        if aopp_enabled:
+            cls.n_percentage = 0.01
+        else:
+            cls.n_percentage = 1e-10
+        n = max(math.floor(0.2*len(alice_key)), math.floor(len(alice_key)*cls.n_percentage))
         alice_key,bob_key = cls.calc_ez(alice_key,bob_key,n,counter_signal_window)
         # analyze the decoy window
         if len(decoy_bits) > 0:
