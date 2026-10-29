@@ -10,9 +10,11 @@ def determine_codes_and_length(key):
     length_key = len(key)
     n_1 =length_key % 1944.0 #math.modf(length_key,1944.0)
     n_2 =length_key % 4000.0 #math.modf(length_key,4000.0)
+    cw_path = os.getcwd()
+
     if n_1 < n_2 :
-        return 1944, codes_from_file("/home/felix/QKD_felix/src/reconciliation/QKD_LDPC_python/codes_1944.txt") 
-    return 4000, codes_from_file("/home/felix/QKD_felix/src/reconciliation/QKD_LDPC_python/codes_4000.txt") 
+        return 1944, codes_from_file(cw_path + "/src/reconciliation/QKD_LDPC_python/codes_1944.txt") 
+    return 4000, codes_from_file(cw_path + "/src/reconciliation/QKD_LDPC_python/codes_4000.txt") 
 
 
 def shannon(p):
