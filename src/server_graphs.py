@@ -57,7 +57,8 @@ class Twinfield_job(paralell.BaseJob):
         ea: float = 0.15,
         distance: float = 0,
         pz = 1 - 0.269,
-        mu = 0.422
+        mu = 0.422,
+        length = 10000000
     ) -> None:
         super().__init__(base_path)
         self.savefile = savefile
@@ -67,11 +68,12 @@ class Twinfield_job(paralell.BaseJob):
         self.distance = distance
         self.pz = pz
         self.mu = mu
+        self.length = length
 
 
     @override
     def name(self) -> str:
-        return f"twinfield_pd1{self.pd}_eta{self.eta}_ea{self.ea}_dist{self.distance}_pz{self.pz}_mu{self.mu}"
+        return f"twinfield_pd1{self.pd}_eta{self.eta}_ea{self.ea}_dist{self.distance}_pz{self.pz}_mu{self.mu}_length{self.length}"
 
     def get_argv(self) -> list[str]:
         return [
@@ -91,6 +93,8 @@ class Twinfield_job(paralell.BaseJob):
             str(self.pz),
             "--mu",
             str(self.mu),
+            "--length",
+            str(self.length),
         ]
 
 '''
@@ -102,17 +106,19 @@ what kind of jobs to run, one job per CPU core, each job is a single-threaded si
 datapoints = 20
 
 def generate_pd_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
+    datapoints = 10
     savefolder = os.getcwd() + "/saves/pd"
     Path(savefolder).parent.mkdir(parents=True, exist_ok=True)
     for i in range(datapoints):
-        savefile = savefolder + "/_pd" + str(i) + ".npz"
+        savefile = savefolder + "/_pd2" + str(i) + ".npz"
         yield Twinfield_job(
             base_path=base_path,
             savefile=savefile,
-            pd=math.pow(10, -i),
+            pd=math.pow(10, -i*10/20),
             eta=0.8,
             ea=0.15,
             distance=0,
+            length = 1000000000
         )
 
 def generate_dist_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
@@ -197,7 +203,7 @@ functions to create the jobs and run them in parallel, one job per CPU core
 '''
 
 def pd():
-    result_dir: Path = Path.cwd() / "results"
+    result_dir: Path = Path.cwd() / "results/pd2"
     gen = generate_pd_jobs(result_dir)
     paralell.schedule(gen,max_parallel_jobs=6)
 
@@ -228,10 +234,11 @@ All the aftercomm stuff + either making graphs out of it or just saving it in cs
 '''
 
 def pd_rest():
-    savefolder = os.getcwd() + "/saves/pd"
+    savefolder = os.getcwd() + "/saves/pd2"
     error_rate = np.zeros(datapoints)
     key_rate = np.zeros(datapoints)
     labels = []
+    datapoints = 10
     for i in range(datapoints):
         savefile = savefolder + "/_pd" + str(i) + ".npz"
         labels.append(f"$10^{{-{i}}}$")
@@ -321,12 +328,12 @@ def pzmu_rest(aopp_enabled = True,hash_enabled = True,ldpc_enabled = True):
 if __name__ == "__main__":
     #ea()
     #eta()
-    #pd()
+    pd()
     #pd_rest()
     #dist()
     #pzmu()
 
-    pd_rest_aopp()
-    dist_ldpc(enable_twinfield = True)
-    dist_ldpc(enable_twinfield = False)
-    pzmu_rest()
+    #pd_rest_aopp()
+    #dist_ldpc(enable_twinfield = True)
+    #dist_ldpc(enable_twinfield = False)
+    #pzmu_rest()

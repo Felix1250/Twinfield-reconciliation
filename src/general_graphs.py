@@ -117,11 +117,11 @@ def main():
     parser.add_argument("--distance", type=float, default=0.0, help="Distance in km.")
     parser.add_argument("--pz", type=float, default=1 - 0.269, help="probability of sending vacuum in signal")
     parser.add_argument("--mu", type=float, default=0.422, help="mu of signal window")
-    parser.add_argument("--length", type=float, default=1000, help="mu of signal window")
+    parser.add_argument("--length", type=float, default=10000000, help="number of pulses")
 
     args = parser.parse_args()
     print(args)
-    simulate_physics(args.savefile, args.pd, args.eta, args.ea, args.distance,args.pz,args.mu)
+    simulate_physics(args.savefile, args.pd, args.eta, args.ea, args.distance,args.pz,args.mu,args.length)
 
 if __name__ == "__main__":
     main()
