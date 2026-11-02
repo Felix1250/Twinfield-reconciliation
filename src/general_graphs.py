@@ -33,7 +33,7 @@ def simulate_physics(path,pd = math.pow(10,-5) , eta  =0.8, ea = 0.15,distance =
     twin.phase_shift_average = ea
     twin.loss_1 = transmittance
     twin.loss_2 = transmittance
-
+    length = int(length)
     twin.tf_communicate(tf_utils.generate_seed(),tf_utils.generate_seed(),length,path)
 
 

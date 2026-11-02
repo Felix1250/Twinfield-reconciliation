@@ -107,10 +107,10 @@ datapoints = 20
 
 def generate_pd_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
     datapoints = 10
-    savefolder = os.getcwd() + "/saves/pd"
+    savefolder = os.getcwd() + "/saves/pd2"
     Path(savefolder).parent.mkdir(parents=True, exist_ok=True)
     for i in range(datapoints):
-        savefile = savefolder + "/_pd2" + str(i) + ".npz"
+        savefile = savefolder + "/_pd" + str(i) + ".npz"
         yield Twinfield_job(
             base_path=base_path,
             savefile=savefile,
@@ -235,15 +235,18 @@ All the aftercomm stuff + either making graphs out of it or just saving it in cs
 
 def pd_rest():
     savefolder = os.getcwd() + "/saves/pd2"
-    error_rate = np.zeros(datapoints)
-    key_rate = np.zeros(datapoints)
-    labels = []
     datapoints = 10
+    comm_iters = np.zeros(datapoints)
+    key_rate = np.zeros(datapoints)
+    signal_length = np.zeros(datapoints)
+    error_rate = np.zeros(datapoints)
+    labels = []
+
     for i in range(datapoints):
         savefile = savefolder + "/_pd" + str(i) + ".npz"
         labels.append(f"$10^{{-{i}}}$")
-        signal_length, error_rate[i] , key_rate[i] , comm_iters=general_graphs.simulate_comm(savefile)
-    general_graphs.plot_general(key_rate, error_rate,labels,os.getcwd() + "/figures/my_graph/pd.png",x_label="'$p_d$",csv_savepath = os.getcwd() + "/figures/my_graph/pd.csv")
+        signal_length[i], error_rate[i] , key_rate[i] , comm_iters[i]=general_graphs.simulate_comm(savefile)
+    general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/pd2_"  + ".csv")
 
 def pd_rest_aopp():
     savefolder = os.getcwd() + "/saves/pd"
