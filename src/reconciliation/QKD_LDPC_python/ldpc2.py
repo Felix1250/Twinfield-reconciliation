@@ -36,7 +36,7 @@ def calc_params(k,n,R_range,qber):
 def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True,felix_impl =False):
     if qber_est == 0:
         qber_est = 0.0000001
-    if len(correct_key) == 0:
+    if len(correct_key) == 0 or qber_est >0.4999:
         return correct_key,faulty_key, 0, 0
     #this loades a code from teh ieee codes with a length of 1944
     f_start = 1.05 # starting efficiency
@@ -78,7 +78,7 @@ def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True
         # calculate how many bits have to be punctured or added
         R, s_n, p_n = ec.choose_sp(qber_est, f_start, R_range, n)
         if R == 0:
-            return [],[], 0, 0
+            return [0],[1], 0, 0
         
         code_params = codes[(R, n)]
         syndrome_length = code_params['syndrome_len']
