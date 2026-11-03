@@ -276,7 +276,7 @@ class Twinfield:
 
 
 
-    def calc_ex(cls,alice_bits,bob_bits,decoy_bits,aopp_enabled):
+    def calc_ex(cls,alice_bits,bob_bits,decoy_bits,psi_AB,aopp_enabled):
         xi = 1e-10
         log_xi2 = np.log(xi / 2)
         def delta_1(delta1, X):
@@ -338,12 +338,12 @@ class Twinfield:
                 if decoy_bits[i][1] != -1: n0 +=1                
             elif alice_bits[1][x] == 1 and bob_bits[1][x] == 1:
                 #smu1 +=1
-                if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) < 0:
+                if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]+ psi_AB[x]) < 0:
                     N11neg +=1
                     if decoy_bits[i][1] == 0:
                         n11neg +=1
                         cls._emu1 +=1
-                if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) > 0 :
+                if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x] + psi_AB[x]) > 0 :
                     N11pos +=1
                     if decoy_bits[i][1] == 1:
                         n11pos +=1
@@ -500,12 +500,12 @@ class Twinfield:
         if aopp_enabled:
             cls.n_percentage = 0.01
         else:
-            cls.n_percentage = 1e-10
+            cls.n_percentage = 0.01
         n = max(math.floor(0.2*len(alice_key)), math.floor(len(alice_key)*cls.n_percentage))
         alice_key,bob_key = cls.calc_ez(alice_key,bob_key,n,counter_signal_window)
         # analyze the decoy window
         if len(decoy_bits) > 0:
-            cls.calc_ex(alice_bits,bob_bits,decoy_bits,aopp_enabled)
+            cls.calc_ex(alice_bits,bob_bits,decoy_bits,psi_AB,aopp_enabled)
         else:
             print("there are no decoy bits lol!")
 

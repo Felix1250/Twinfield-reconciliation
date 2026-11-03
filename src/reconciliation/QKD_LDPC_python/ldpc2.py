@@ -33,39 +33,54 @@ def calc_params(k,n,R_range,qber):
     return R_min,s,p
 
 
-def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True):
+def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True,felix_impl =False):
     if qber_est == 0:
         qber_est = 0.0000001
     if len(correct_key) == 0:
         return correct_key,faulty_key, 0, 0
     #this loades a code from teh ieee codes with a length of 1944
-    f_start = 1.0 # starting efficiency
-    discl_k = 1
+    f_start = 1.05 # starting efficiency
+    discl_k = 0
+    if qber_est > 30:
+        discl_k = 2
+    if felix_impl:
+        n,codes = determine_codes_and_length(correct_key)
 
-    #codes = codes_from_file("/home/felix/QKD_felix/src/reconciliation/QKD_LDPC_python/codes_1944.txt")  
-    #n = 1944
-    n,codes = determine_codes_and_length(correct_key)
+        # Computing the range of rates for given codes
+        R_range = []
+        m_range = []
+        for code in codes:
+            R_range.append(codes[(code[0], n)]['R'])
+            m_range.append(codes[(code[0], n)]['syndrome_len'])
+        s_n = p_n =0
+        #select which code fits the required rate best
+        Rate = 1 - shannon(qber_est)
+        index = min(enumerate(R_range), key=lambda pair: abs(pair[1] - Rate))[0]
+        R_min = R_range[index]
+        k = n-m_range[index]
 
-    # Computing the range of rates for given codes
-    R_range = []
-    m_range = []
-    for code in codes:
-        R_range.append(codes[(code[0], n)]['R'])
-        m_range.append(codes[(code[0], n)]['syndrome_len'])
-    s_n = p_n =0
-    #select which code fits the required rate best
-    Rate = 1 - shannon(qber_est)
-    index = min(enumerate(R_range), key=lambda pair: abs(pair[1] - Rate))[0]
-    R_min = R_range[index]
-    k = n-m_range[index]
-
-    #calculate how many shortened / punctured bits 
-    syndrome_length = m_range[index]
-    if Rate < R_min:
-        s_n = math.floor(k- Rate * n / (1 - Rate))
+        #calculate how many shortened / punctured bits 
+        syndrome_length = m_range[index]
+        if Rate < R_min:
+            s_n = math.floor((k- Rate * n )/ (1 - Rate))
+        else:
+            p_n = math.floor(n - k/Rate)
+        R = R_min
     else:
-        p_n = math.floor(n - k/Rate)
-    R = R_min
+        codes = codes_from_file('codes_4000.txt') 
+        n = 4000
+
+        # Computing the range of rates for given codes
+        R_range = []
+        for code in codes:
+            R_range.append(code[0])
+        # calculate how many bits have to be punctured or added
+        R, s_n, p_n = ec.choose_sp(qber_est, f_start, R_range, n)
+
+        print(f"R range is: {np.sort(R_range)}")
+
+        # select the code to use from the available codes
+        R, s_n, p_n = ec.choose_sp(qber_est, f_start, R_range, n)
     code_params = codes[(R, n)]
     s_y_joins = code_params['s_y_joins']
     y_s_joins = code_params['y_s_joins']
