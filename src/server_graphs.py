@@ -285,7 +285,7 @@ def ea_rest():
 
 def dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 0):
     savefolder = os.getcwd() + "/saves/dist"
-    datapoints = 50
+    datapoints = 44
     comm_iters = np.zeros(datapoints)
     key_rate = np.zeros(datapoints)
     signal_length = np.zeros(datapoints)
@@ -334,8 +334,8 @@ if __name__ == "__main__":
     #ea()
     #eta()
     #pd()
-    eta_rest()
-    ea_rest()
+    #eta_rest()
+    #ea_rest()
     #pd_rest()
     #pd_rest_aopp()
     dist_ldpc(enable_twinfield=True,aopp_enabled = True,hash_enabled = True,counter = 0)

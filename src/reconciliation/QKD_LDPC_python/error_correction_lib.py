@@ -76,6 +76,7 @@ def choose_sp(qber, f, R_range, n):
             R_min = R
     if R_min is not None:
         return R_min, int(floor(n*sigma_min)), int(ceil(n*pi_min))
+    return 0,0,0
 
 
 def generate_sp(s_n, p_n, k_n, p_list=None):

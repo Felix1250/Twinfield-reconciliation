@@ -77,6 +77,9 @@ def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True
             R_range.append(code[0])
         # calculate how many bits have to be punctured or added
         R, s_n, p_n = ec.choose_sp(qber_est, f_start, R_range, n)
+        if R == 0:
+            return [],[], 0, 0
+        
         code_params = codes[(R, n)]
         syndrome_length = code_params['syndrome_len']
         print(f"R range is: {np.sort(R_range)}")
