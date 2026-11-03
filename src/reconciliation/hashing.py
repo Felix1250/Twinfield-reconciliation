@@ -23,12 +23,12 @@ def after_EC(alice_key: np.ndarray, bob_key: np.ndarray, seed: np.ndarray = np.e
 
     alice_hash = get_hashed(alice_key, seed_slice, n, m)
     bob_hash = get_hashed(bob_key, seed_slice, n, m)
-    print("FFT Hashed Key:    ", alice_hash)
-    print("Direct Matrix Key: ", bob_hash)
+    print("Alice Key:    ", alice_hash)
+    print("Bob Key: ", bob_hash)
     print("Match:", np.array_equal(alice_hash, bob_hash))
     if np.array_equal(alice_hash, bob_hash):
         return alice_key, bob_key
-    return 0,0
+    return None,None
 
 
 def calc_m(length_key_before_reconciliation,e_ph):
@@ -55,11 +55,10 @@ def scipy_toeplitz_hash_with_matrix(alice_key: np.ndarray, bob_key: np.ndarray, 
     bob_hash = get_hashed(bob_key, seed_slice, n, m)
 
     print("Match:", np.array_equal(alice_hash, bob_hash))
-    
     return alice_hash, bob_hash
 
 def priv_ampl(alice_key: np.ndarray, bob_key: np.ndarray, eph:float,n_1:int):
-   
     alice_key2,bob_key2  = after_EC(alice_key,bob_key)
     m = calc_m(n_1,eph)
+    print("m = " + str(m) )
     return scipy_toeplitz_hash_with_matrix(alice_key2,bob_key2,m)

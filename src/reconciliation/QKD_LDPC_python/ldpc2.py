@@ -67,7 +67,8 @@ def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True
             p_n = math.floor(n - k/Rate)
         R = R_min
     else:
-        codes = codes_from_file('codes_4000.txt') 
+        cw_path = os.getcwd()
+        codes = codes_from_file(cw_path + "/src/reconciliation/QKD_LDPC_python/codes_4000.txt") 
         n = 4000
 
         # Computing the range of rates for given codes
@@ -76,11 +77,10 @@ def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True
             R_range.append(code[0])
         # calculate how many bits have to be punctured or added
         R, s_n, p_n = ec.choose_sp(qber_est, f_start, R_range, n)
-
+        code_params = codes[(R, n)]
+        syndrome_length = code_params['syndrome_len']
         print(f"R range is: {np.sort(R_range)}")
 
-        # select the code to use from the available codes
-        R, s_n, p_n = ec.choose_sp(qber_est, f_start, R_range, n)
     code_params = codes[(R, n)]
     s_y_joins = code_params['s_y_joins']
     y_s_joins = code_params['y_s_joins']
