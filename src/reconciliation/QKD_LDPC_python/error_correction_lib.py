@@ -374,7 +374,7 @@ def perform_ec(x, y, s_y_joins, y_s_joins, qber_est,qber_est_0, s_n, p_n, punct_
     e_pat_in = generate_key_zeros(n)
 
     e_pat, minLLR_inds = decode_syndrome_minLLR(e_pat_in, s_d, s_y_joins, y_s_joins, qber_est,qber_est_0, s_pos,
-                                                p_pos, k_pos, max_iter=100500, x=key_sum, show=show, discl_n=discl_n, n_iter_avg_window=5,twinfield=twinfield)
+                                                p_pos, k_pos, max_iter=300, x=key_sum, show=show, discl_n=discl_n, n_iter_avg_window=5,twinfield=twinfield)
 
     add_info = p_n
     com_iters = 0
@@ -389,7 +389,7 @@ def perform_ec(x, y, s_y_joins, y_s_joins, qber_est,qber_est_0, s_n, p_n, punct_
         if p_pos is not None:
             p_pos = list(set(p_pos) - set(minLLR_inds))
         e_pat, minLLR_inds = decode_syndrome_minLLR(e_pat_in, s_d, s_y_joins, y_s_joins, qber_est,qber_est_0, s_pos, p_pos,
-                                                    k_pos, r_start=None, max_iter=100500, x=key_sum, show=show, discl_n=discl_n, n_iter_avg_window=5,twinfield=twinfield)
+                                                    k_pos, r_start=None, max_iter=300, x=key_sum, show=show, discl_n=discl_n, n_iter_avg_window=5,twinfield=twinfield)
         add_info += discl_n
         com_iters += 1
 

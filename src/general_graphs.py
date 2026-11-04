@@ -48,7 +48,7 @@ def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled =
 
     print(dir(ldpc2))
     if ldpc_enabled:
-        alice_key, bob_key,disclosed_info,comm_iters = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._esignal,qber_est_0 =twin.pd0,twinfield = enable_twinfield)
+        alice_key, bob_key,disclosed_info,comm_iters = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._eSS,qber_est_0 =twin._eNN,twinfield = enable_twinfield)
     if hash_enabled:
         alice_key, bob_key = hashing.priv_ampl(alice_key, bob_key, twin._ephi,twin._n1)
     signal_length = len(alice_key)
@@ -68,7 +68,7 @@ def simulate_comm_ea(path,ea,aopp_enabled = False,ldpc_enabled = False, hash_ena
 
     print(dir(ldpc2))
     if ldpc_enabled:
-        alice_key, bob_key,disclosed_info,comm_iters = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._esignal,qber_est_0 =twin.pd0,twinfield = enable_twinfield)
+        alice_key, bob_key,disclosed_info,comm_iters = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._eSS,qber_est_0 =twin._eNN,twinfield = enable_twinfield)
     if hash_enabled:
         alice_key, bob_key = hashing.priv_ampl(alice_key, bob_key, twin._ephi,twin._n1)
     signal_length = len(alice_key)

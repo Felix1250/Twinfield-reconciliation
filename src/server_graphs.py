@@ -271,7 +271,7 @@ def eta_rest():
     general_graphs.plot_general(key_rate, error_rate,labels,os.getcwd() + "/figures/my_graph/eta.png",x_label="'$\eta$",csv_savepath = os.getcwd() + "/figures/my_graph/eta.csv")
 
 def ea_rest():
-    savefolder = os.getcwd() + "/saves/ea"
+    savefolder = os.getcwd() + "/saves/pd2"
     comm_iters = np.zeros(datapoints)
     key_rate = np.zeros(datapoints)
     signal_length = np.zeros(datapoints)

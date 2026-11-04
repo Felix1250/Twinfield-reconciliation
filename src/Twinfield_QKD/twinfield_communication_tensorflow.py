@@ -139,6 +139,8 @@ class Twinfield:
     _N1 = 0
     _n1 = 0
     _esignal = 0
+    _eNN = 0
+    _eSS = 0
     _ephi = 0
     _decoy_length = 0
     
@@ -269,6 +271,8 @@ class Twinfield:
         print("NS/SN in signal window: " + str(counter_SN))
         print("SS in signal window: " + str(counter_SS))
         cls._esignal = (counter_NN + counter_SS) / n
+        cls._eNN = (counter_NN ) / n
+        cls._eSS = (counter_SS ) / n
         print("Error rate of subset: " + str(cls._esignal))
         print("---------------------------------------")
         return alice_key[arr],bob_key[arr]
