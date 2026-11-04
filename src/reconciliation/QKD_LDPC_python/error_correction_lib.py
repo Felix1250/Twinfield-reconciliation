@@ -344,6 +344,13 @@ def decode_syndrome_minLLR(y, s, s_y_joins, y_s_joins, qber_est, qber_est_0, s_p
         M = -E+sum_E
 
         n_iter += 1
+        if n_iter % 1000 == 0:
+            print(
+                f"Iteration: {n_iter}/{max_iter}, "
+                f"Matched bits: {np.count_nonzero(z == x)}/{n}, "
+                f"Mean LLR: {mean(abs(sum_E[v_pos])):.4f}",
+                flush=True
+            )
 
     minLLR_inds = []
     maxLLR = max(sum_E_abs)
