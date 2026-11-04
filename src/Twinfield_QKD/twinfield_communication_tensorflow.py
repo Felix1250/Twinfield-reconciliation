@@ -277,7 +277,7 @@ class Twinfield:
 
 
     def calc_ex(cls,alice_bits,bob_bits,decoy_bits,psi_AB,aopp_enabled):
-        xi = 1e-10
+        xi = 1/len(alice_bits)
         log_xi2 = np.log(xi / 2)
         c = -log_xi2 
         def delta_1(delta, X):
@@ -417,8 +417,8 @@ class Twinfield:
         if mu1mu2!= 0:
             s1 = (p2mu1 * (s01_ + s10_) - p1mu2 * (_s02 + _s20)- 2*(cls.mu2*cls.mu2-cls.mu1*cls.mu1) *_s0) / (mu1mu2)
             print("this happened")
-            print("s01 " + str(s01_))
-            print("s10 " + str(s10_))
+            print("s01 " + str(s01))
+            print("s10 " + str(s10))
             print("s02 " + str(s02))
             print("s20 " + str(s20))
             print("s0 " + str(s0))
