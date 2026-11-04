@@ -281,7 +281,7 @@ def ea_rest():
         savefile = savefolder + "/_ea" + str(1) + ".npz"
         labels.append(f"{i/20:.2f}")
         ea = i/20
-        signal_length[i], error_rate[i], key_rate[i], comm_iters[i]=general_graphs.simulate_comm(savefile,ea,aopp_enabled = True,ldpc_enabled = True, enable_twinfield=True,hash_enabled=True)
+        signal_length[i], error_rate[i], key_rate[i], comm_iters[i]=general_graphs.simulate_comm_ea(savefile,ea,aopp_enabled = True,ldpc_enabled = True, enable_twinfield=True,hash_enabled=True)
     general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/ea.csv")
 
 def dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 0):

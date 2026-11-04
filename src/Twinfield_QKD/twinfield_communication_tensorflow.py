@@ -373,7 +373,10 @@ class Twinfield:
         s02 = n02/N02 if N02 != 0 else 0.0
         s20 = n20/N20 if N20 != 0 else 0.0
 
-
+        print("n01 " + str(n01) + "/" + str(N01))
+        print("n10 " + str(n10) + "/" + str(N10))
+        print("N02 " + str(n02) + "/" + str(N02))
+        print("N20 " + str(n20) + "/" + str(N20))
 
         _s0 = phi_U_S(n0)/N0 if N0 != 0 else 0.0
         _s02 = phi_U_S(n02)/N02 if N02 != 0 else 0.0
