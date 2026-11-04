@@ -39,10 +39,10 @@ def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True
     if len(correct_key) == 0 or qber_est >0.4999:
         return correct_key,faulty_key, 0, 0
     #this loades a code from teh ieee codes with a length of 1944
-    f_start = 1.2 # starting efficiency
-    discl_k = 1
+    f_start = 1.15 # starting efficiency
+    discl_k = 0
     if qber_est > 0.30:
-        discl_k = 2
+        discl_k = 1
     if felix_impl:
         n,codes = determine_codes_and_length(correct_key)
 
@@ -129,7 +129,7 @@ def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True
     remaining_errors = np.abs(corrected_key.astype(int) - correct_key.astype(int))
     print("Total remaining errors: " + str(np.sum(remaining_errors)))
     print("remaining errorrate: " + str(np.mean(remaining_errors)))
-
+    print("remaining key length: " + str(len(corrected_key)))
     return correct_key,corrected_key, disclosed_info, com_iters_counter
 
 
