@@ -360,21 +360,21 @@ class Twinfield:
                 N0 +=1
                 if decoy_bits[i][1] != -1: n0 +=1                
             elif alice_bits[1][x] == 1 and bob_bits[1][x] == 1:
-                #smu1 +=1
-                if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) < 0:
-                    N11neg +=1
-                    if decoy_bits[i][1] == 0:
-                        n11neg +=1
-                        cls._emu1 +=1
-                    elif random.random() < cls.phase_shift_average:
-                        n11neg +=1
-                if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) > 0 :
-                    N11pos +=1
-                    if decoy_bits[i][1] == 1:
-                        n11pos +=1
-                        cls._emu1 +=1
-                    elif random.random() < cls.phase_shift_average:
-                        n11pos +=1
+                if decoy_bits[i][1] != -1:   
+                    if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) < 0:
+                        N11neg +=1
+                        if decoy_bits[i][1] == 0:
+                            n11neg +=1
+                            cls._emu1 +=1
+                        elif random.random() < cls.phase_shift_average:
+                            n11neg +=1
+                    if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) > 0 :
+                        N11pos +=1
+                        if decoy_bits[i][1] == 1:
+                            n11pos +=1
+                            cls._emu1 +=1
+                        elif random.random() < cls.phase_shift_average:
+                            n11pos +=1
                     
             #elif alice_bits[1][x] == 2 and bob_bits[1][x] == 2:
             #    smu2 +=1
@@ -469,7 +469,7 @@ class Twinfield:
             
             print("---------------------------------------")
             print("n1: " + str(cls._n1))
-            print("eph: " + str(e_phi))
+            print("eph: " + str(cls.e_phi))
             print("---------------------------------------")
 
         else:
