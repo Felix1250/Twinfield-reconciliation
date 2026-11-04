@@ -278,7 +278,7 @@ def ea_rest():
     error_rate = np.zeros(datapoints)
     labels = []
     for i in range(datapoints):
-        savefile = savefolder + "/_ea" + str(i) + ".npz"
+        savefile = savefolder + "/_ea" + str(1) + ".npz"
         labels.append(f"{i/20:.2f}")
         ea = i/20
         signal_length[i], error_rate[i], key_rate[i], comm_iters[i]=general_graphs.simulate_comm(savefile,ea,aopp_enabled = True,ldpc_enabled = True, enable_twinfield=True,hash_enabled=True)
