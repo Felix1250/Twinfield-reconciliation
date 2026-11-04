@@ -152,7 +152,7 @@ class Twinfield:
     
 
     def generate_random_phaseShift(cls,length):
-        psi_AB = np.random.normal(loc=0, scale=cls.phase_shift_average, size=length)
+        psi_AB = np.random.normal(loc=0, scale=cls.phase_shift_average *2* math.pi, size=length)
         for i in range(length):
             psi_AB[i] = psi_AB[i] % (math.pi *2)
         
@@ -445,6 +445,10 @@ class Twinfield:
             distance = (-10 * math.log10(cls.loss_1))/0.2
         else: distance = 0
         cls.s_phaseSlice = 0.25 + 0.45/450 * distance
+
+        #-----------------test---------------------
+        psi_AB = cls.generate_random_phaseShift(length)
+        #-----------------test---------------------
 
         print("s phase",str(cls.s_phaseSlice))
         print("n phase",str(cls.n_phaseSlice))

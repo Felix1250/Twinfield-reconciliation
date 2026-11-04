@@ -57,6 +57,26 @@ def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled =
     key_rate = (len(alice_key))/twin._N_pulses
     return signal_length, error_rate , key_rate , comm_iters
 
+def simulate_comm_ea(path,ea,aopp_enabled = False,ldpc_enabled = False, hash_enabled = False, enable_twinfield=True):
+    twin =twinfield_communication_tensorflow.Twinfield()
+    twin.tf_communicate_load_settings(path)
+    twin.phase_shift_average = ea
+    alice_key, bob_key = twin.tf_communicat_load(path,aopp_enabled = aopp_enabled)
+
+    comm_iters = 0
+    error_rate = 0
+
+    print(dir(ldpc2))
+    if ldpc_enabled:
+        alice_key, bob_key,disclosed_info,comm_iters = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._esignal,qber_est_0 =twin.pd0,twinfield = enable_twinfield)
+    if hash_enabled:
+        alice_key, bob_key = hashing.priv_ampl(alice_key, bob_key, twin._ephi,twin._n1)
+    signal_length = len(alice_key)
+    if len(alice_key) > 0:
+        error_rate = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))        
+    key_rate = (len(alice_key))/twin._N_pulses
+    return signal_length, error_rate , key_rate , comm_iters
+
 def save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = "temp.csv"):
     data = []
     for i in range(len(key_rate)):

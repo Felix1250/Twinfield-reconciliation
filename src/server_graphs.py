@@ -280,7 +280,8 @@ def ea_rest():
     for i in range(datapoints):
         savefile = savefolder + "/_ea" + str(i) + ".npz"
         labels.append(f"{i/20:.2f}")
-        signal_length[i], error_rate[i], key_rate[i], comm_iters[i]=general_graphs.simulate_comm(savefile,aopp_enabled = True,ldpc_enabled = True, enable_twinfield=True,hash_enabled=True)
+        ea = i/20
+        signal_length[i], error_rate[i], key_rate[i], comm_iters[i]=general_graphs.simulate_comm(savefile,ea,aopp_enabled = True,ldpc_enabled = True, enable_twinfield=True,hash_enabled=True)
     general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/ea.csv")
 
 def dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 0):
@@ -339,7 +340,7 @@ if __name__ == "__main__":
     #pd_rest()
     #pd_rest_aopp()
     dist_ldpc(enable_twinfield=True,aopp_enabled = True,hash_enabled = True,counter = 0)
-    dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 1)
+    dist_ldpc(enable_twinfield=False,aopp_enabled = False,hash_enabled = True,counter = 1)
     #dist()
     #pzmu()
 
