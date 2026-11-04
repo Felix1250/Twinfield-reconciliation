@@ -91,7 +91,7 @@ def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True
 
     discl_n = int(round(n*(0.0280-0.02*R)*discl_k))
     disclosed_info = 0
-
+    print("syndrome length: " + str(syndrome_length))
     # length = n - shortened - punctured bits
     payload_per_block = n - s_n - p_n
     # Chunk the key into blocks of payload_per_block
