@@ -437,6 +437,7 @@ class Twinfield:
             print("S1 " +str(s1))
         if s1 > 0:
             if cls.phase_shift_average == 0:
+                print("no misalignment error")
                 if N11pos == 0 or N11neg == 0:
                     T = 0
                 else:
