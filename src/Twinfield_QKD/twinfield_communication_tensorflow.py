@@ -419,8 +419,8 @@ class Twinfield:
             print("this happened")
             print("s01 " + str(s01))
             print("s10 " + str(s10))
-            print("s02 " + str(s02))
-            print("s20 " + str(s20))
+            print("s02 " + str(_s02))
+            print("s20 " + str(_s20))
             print("s0 " + str(s0))
             print("S1 " +str(s1))
         if s1 > 0:
