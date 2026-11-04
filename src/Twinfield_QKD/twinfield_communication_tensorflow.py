@@ -354,6 +354,7 @@ class Twinfield:
         n10 = 0 ; n20 = 0 ;N10 = 0 ; N20 = 0
         n11pos = 0; n11neg = 0
         N11pos = 0; N11neg = 0
+        n11neg_misal = 0; n11pos_misal = 0
         for i in range(len(decoy_bits)):  
             x = decoy_bits[i][0]
             if alice_bits[1][x] == 0 and bob_bits[1][x] == 0:
@@ -368,6 +369,7 @@ class Twinfield:
                             cls._emu1 +=1
                         elif random.random() < cls.phase_shift_average:
                             n11neg +=1
+                            n11neg_misal += 1
                     if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) > 0 :
                         N11pos +=1
                         if decoy_bits[i][1] == 1:
@@ -375,6 +377,7 @@ class Twinfield:
                             cls._emu1 +=1
                         elif random.random() < cls.phase_shift_average:
                             n11pos +=1
+                            n11pos_misal += 1
                     
             #elif alice_bits[1][x] == 2 and bob_bits[1][x] == 2:
             #    smu2 +=1
@@ -437,6 +440,12 @@ class Twinfield:
                 T = 0
             else:
                 T= 1/2 * (n11pos / N11pos + n11neg / N11neg) 
+            print("n11pos: " + str(n11pos))
+            print("N11pos: " + str(N11pos))
+            print("n11neg: " + str(n11neg))
+            print("N11neg: " + str(N11neg))
+            print("n11pos_misal: " + str(n11pos_misal))
+            print("n11neg_misal: " + str(n11neg_misal))
             print("n10: " + str(n10))
             print("n01: " + str(n01))
             print("N10: " + str(N10))
@@ -469,7 +478,7 @@ class Twinfield:
             
             print("---------------------------------------")
             print("n1: " + str(cls._n1))
-            print("eph: " + str(cls.e_phi))
+            print("eph: " + str(cls._ephi))
             print("---------------------------------------")
 
         else:
