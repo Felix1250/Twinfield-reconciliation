@@ -8,7 +8,7 @@ import multiprocessing as mp
 from tqdm import tqdm
 import gc
 import sys
-from scipy.optimize import fsolve
+from scipy.optimize import brentq
 
 
 import tf_utils
@@ -279,48 +279,67 @@ class Twinfield:
     def calc_ex(cls,alice_bits,bob_bits,decoy_bits,psi_AB,aopp_enabled):
         xi = 1e-10
         log_xi2 = np.log(xi / 2)
-        def delta_1(delta1, X):
-            if delta1 <= -1:
-                return 1e9
-            return (X / (1 + delta1)) * (delta1 - (1 + delta1) * np.log(1 + delta1)) - log_xi2
-
-        def delta_2(delta2, X):
-            if delta2 >= 1 or delta2 <= 0:
-                return 1e9
-            return (X / (1 - delta2)) * (-delta2 - (1 - delta2) * np.log(1 - delta2)) - log_xi2
-
+        c = -log_xi2 
+        def delta_1(delta, X):
+            return (
+                X / (1 + delta)
+                * (delta - (1 + delta) * np.log1p(delta))
+                - log_xi2
+            )
+        def delta_2(delta, X):
+            return (
+                X / (1 - delta)
+                * (-delta - (1 - delta) * np.log1p(-delta))
+                - log_xi2
+            )
         def phi_L_s(X):
-            if X == 0:
+            if X <= 0:
                 return 0.0
-            delta_1_val = fsolve(delta_1, x0=0.1, args=(X))[0]
-            return X / (1 + delta_1_val)
+            upper = 1.0
+            while delta_1(upper, X) > 0:
+                upper *= 2.0
+            delta = brentq(
+                lambda d: delta_1(d, X),0.0,upper)
+            return X / (1.0 + delta)
 
         def phi_U_S(X):
-            if X == 0:
-                return 0.0
-            delta_2_val = fsolve(delta_2, x0=0.1, args=(X))[0]
-            return X / (1 - delta_2_val)
+            if X <= c:
+                return float("inf")
+            eps = 1e-12
+            delta = brentq(
+                lambda d: delta_2(d, X),eps,1.0 - eps)
+            return X / (1.0 - delta)
 
+        def delta_1line(delta, Y):
+            return (
+                Y * (delta - (1 + delta) * np.log1p(delta))
+                - log_xi2
+            )
 
-        def delta_1line(delta1, Y):
-            if delta1 <= -1:
-                return 1e9
-            return Y * (delta1 - (1 + delta1) * np.log(1 + delta1)) - log_xi2
-        
-        def delta_2line(delta2, Y):
-            if delta2 >= 1:
-                return 1e9
-            return Y * (-delta2 - (1 - delta2) * np.log(1 - delta2)) - log_xi2
+        def delta_2line(delta, Y):
+            return (
+                Y * (-delta - (1 - delta) * np.log1p(-delta))
+                - log_xi2
+            )
 
         def phi_U(Y):
-            initial_guess = 0.1
-            delta_1_val = fsolve(delta_1line, x0=initial_guess, args=(Y))[0]
-            return (1+ delta_1_val) * Y
+            if Y <= 0:
+                return 0.0
+            upper = 1.0
+            while delta_1line(upper, Y) > 0:
+                upper *= 2.0
+            delta = brentq(
+                lambda d: delta_1line(d, Y),0.0,upper)
+            return (1.0 + delta) * Y
+
 
         def phi_L(Y):
-            initial_guess = 0.1
-            delta_2_val = fsolve(delta_2line, x0=initial_guess, args=(Y))[0]
-            return (1.0-delta_2_val) * Y
+            if Y <= c:
+                return 0.0
+            eps = 1e-12
+            delta = brentq(
+                lambda d: delta_2line(d, Y),eps,1.0 - eps)
+            return (1.0 - delta) * Y
 
 
         if len(decoy_bits) == 0:
@@ -405,7 +424,10 @@ class Twinfield:
             print("s0 " + str(s0))
             print("S1 " +str(s1))
         if s1 != 0:
-            T= 1/2 * (n11pos / N11pos + n11neg / N11neg) 
+            if N11pos == 0 or N11neg == 0:
+                T = 0
+            else:
+                T= 1/2 * (n11pos / N11pos + n11neg / N11neg) 
             print("n10: " + str(n10))
             print("n01: " + str(n01))
             print("N10: " + str(N10))
