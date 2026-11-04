@@ -357,16 +357,21 @@ class Twinfield:
                 if decoy_bits[i][1] != -1: n0 +=1                
             elif alice_bits[1][x] == 1 and bob_bits[1][x] == 1:
                 #smu1 +=1
-                if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]+ psi_AB[x]) < 0:
+                if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) < 0:
                     N11neg +=1
                     if decoy_bits[i][1] == 0:
                         n11neg +=1
                         cls._emu1 +=1
-                if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x] + psi_AB[x]) > 0 :
+                    elif random.random() < cls.phase_shift_average:
+                        n11neg +=1
+                if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) > 0 :
                     N11pos +=1
                     if decoy_bits[i][1] == 1:
                         n11pos +=1
                         cls._emu1 +=1
+                    elif random.random() < cls.phase_shift_average:
+                        n11pos +=1
+                    
             #elif alice_bits[1][x] == 2 and bob_bits[1][x] == 2:
             #    smu2 +=1
             #    if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) < 0 and decoy_bits[i][1] == 0:
@@ -472,7 +477,7 @@ class Twinfield:
         cls.s_phaseSlice = 0.25 + 0.45/450 * distance
 
         #-----------------test---------------------
-        psi_AB = cls.generate_random_phaseShift(length)
+        #psi_AB = cls.generate_random_phaseShift(length)
         #-----------------test---------------------
 
         print("s phase",str(cls.s_phaseSlice))
@@ -488,7 +493,7 @@ class Twinfield:
             if alice_bits[0][i] == 0 and bob_bits[0][i] == 0: # check whether both use the Z basis
 
                 #if 1-abs(math.sin(alice_bits[2][i]-bob_bits[2][i] + psi_AB[i])) <= abs(cls.s_phaseSlice): 
-                if abs(abs(alice_bits[2][i]-bob_bits[2][i] + psi_AB[i]) - math.pi/2) <= cls.s_phaseSlice:
+                if abs(abs(alice_bits[2][i]-bob_bits[2][i] ) - math.pi/2) <= cls.s_phaseSlice: #+ psi_AB[i]
                     if measures[i][0] == 0 and measures[i][0] != measures[i][1]: #only if detector 2 clicks
                         decoy_bits.append((i,1))
                     elif measures[i][1] == 0 and measures[i][0] != measures[i][1]: #only if detector 1 clicks
