@@ -272,18 +272,34 @@ def eta_rest():
 
 def ea_rest():
     savefolder = os.getcwd() + "/saves/pd2"
+    datapoints = 20
     comm_iters = np.zeros(datapoints)
     key_rate = np.zeros(datapoints)
     signal_length = np.zeros(datapoints)
     error_rate = np.zeros(datapoints)
     labels = []
-    datapoints = 20
     for i in range(datapoints):
         savefile = savefolder + "/_pd" + str(5) + ".npz"
         labels.append(f"{i/40:.2f}")
         ea = i/40
         signal_length[i], error_rate[i], key_rate[i], comm_iters[i]=general_graphs.simulate_comm_ea(savefile,ea,aopp_enabled = True,ldpc_enabled = True, enable_twinfield=True,hash_enabled=True)
     general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/ea.csv")
+
+def ldpc_rest(discl_k):
+    savefolder = os.getcwd() + "/saves/pd2"
+    datapoints = 15
+    comm_iters = np.zeros(datapoints)
+    key_rate = np.zeros(datapoints)
+    signal_length = np.zeros(datapoints)
+    error_rate = np.zeros(datapoints)
+    labels = []
+    for i in range(datapoints):
+        savefile = savefolder + "/_pd" + str(5) + ".npz"
+        f = 1.05 + 0.01*i
+        labels.append(f"{f:.2f}")
+        ea = 15/40
+        signal_length[i], error_rate[i], key_rate[i], comm_iters[i]=general_graphs.simulate_comm_ea(savefile,ea,aopp_enabled = True,ldpc_enabled = True, enable_twinfield=True,hash_enabled=True,f=f,discl_k=discl_k)
+    general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/ldpc " + discl_k+".csv")
 
 def dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 0):
     savefolder = os.getcwd() + "/saves/dist"
@@ -337,7 +353,9 @@ if __name__ == "__main__":
     #eta()
     #pd()
     #eta_rest()
-    ea_rest()
+    ldpc_rest(0.5)
+    ldpc_rest(1)
+    #ea_rest()
     #pd_rest()
     #pd_rest_aopp()
     #dist_ldpc(enable_twinfield=True,aopp_enabled = True,hash_enabled = True,counter = 0)

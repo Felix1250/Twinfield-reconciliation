@@ -57,7 +57,7 @@ def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled =
     key_rate = (len(alice_key))/twin._N_pulses
     return signal_length, error_rate , key_rate , comm_iters
 
-def simulate_comm_ea(path,ea,aopp_enabled = False,ldpc_enabled = False, hash_enabled = False, enable_twinfield=True):
+def simulate_comm_ea(path,ea,aopp_enabled = False,ldpc_enabled = False, hash_enabled = False, enable_twinfield=True,f=1.15,discl_k = 0.5):
     twin =twinfield_communication_tensorflow.Twinfield()
     twin.tf_communicate_load_settings(path)
     twin.phase_shift_average = ea
@@ -68,7 +68,7 @@ def simulate_comm_ea(path,ea,aopp_enabled = False,ldpc_enabled = False, hash_ena
 
     print(dir(ldpc2))
     if ldpc_enabled:
-        alice_key, bob_key,disclosed_info,comm_iters = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._esignal,qber_est_0 =twin._eNN,twinfield = False)
+        alice_key, bob_key,disclosed_info,comm_iters = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._esignal,qber_est_0 =twin._eNN,twinfield = False,f_start = f,discl_k=discl_k)
     if hash_enabled:
         alice_key, bob_key = hashing.priv_ampl(alice_key, bob_key, twin._ephi,twin._n1)
     signal_length = len(alice_key)
