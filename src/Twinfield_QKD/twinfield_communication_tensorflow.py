@@ -304,12 +304,12 @@ class Twinfield:
 
         def phi_U_S(X):
             if X <= c:
-                return float("inf")
+                return -log_xi2
             eps = 1e-12
             delta = brentq(
                 lambda d: delta_2(d, X),eps,1.0 - eps)
             return X / (1.0 - delta)
-
+        
         def delta_1line(delta, Y):
             return (
                 Y * (delta - (1 + delta) * np.log1p(delta))
