@@ -303,8 +303,8 @@ class Twinfield:
             return X / (1.0 + delta)
 
         def phi_U_S(X):
-            if X <= c:
-                return -log_xi2
+            if X == 0:
+                return c
             eps = 1e-12
             delta = brentq(
                 lambda d: delta_2(d, X),eps,1.0 - eps)
@@ -423,7 +423,7 @@ class Twinfield:
             print("s20 " + str(s20))
             print("s0 " + str(s0))
             print("S1 " +str(s1))
-        if s1 != 0:
+        if s1 > 0:
             if N11pos == 0 or N11neg == 0:
                 T = 0
             else:
