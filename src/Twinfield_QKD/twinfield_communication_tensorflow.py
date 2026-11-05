@@ -435,15 +435,6 @@ class Twinfield:
             print("s20 " + str(_s20))
             print("s0 " + str(s0))
             print("S1 " +str(s1))
-        if s1 > 0:
-            if cls.phase_shift_average == 0:
-                print("no misalignment error")
-                if N11pos == 0 or N11neg == 0:
-                    T = 0
-                else:
-                    T= 1/2 * (n11pos / N11pos + n11neg / N11neg) 
-            else:
-                T = cls.phase_shift_average
             print("n11pos: " + str(n11pos))
             print("N11pos: " + str(N11pos))
             print("n11neg: " + str(n11neg))
@@ -454,6 +445,16 @@ class Twinfield:
             print("n01: " + str(n01))
             print("N10: " + str(N10))
             print("N01: " + str(N01))
+        if s1 > 0:
+            if cls.phase_shift_average == 0:
+                print("no misalignment error")
+                if N11pos == 0 or N11neg == 0:
+                    T = 0
+                else:
+                    T= 1/2 * (n11pos / N11pos + n11neg / N11neg) 
+            else:
+                T = cls.phase_shift_average
+
             print("T" + str(T))
             ephi =(T- 1/2*math.pow(math.e,-2 *cls.mu1)*s0)/(2*cls.mu1 * math.pow(math.e,-2 *cls.mu1) * s1)
             N_1 = 2 * (1 - cls.p_x)**2 * cls.p_z * (1 - cls.p_z) * cls.mu3 * math.pow(math.e, -cls.mu3) *len(alice_bits[0])

@@ -66,7 +66,7 @@ def simulate_comm_ea(path,ea,aopp_enabled = False,ldpc_enabled = False, hash_ena
     comm_iters = 0
     error_rate = 0
 
-    print(dir(ldpc2))
+    print(path)
     if ldpc_enabled:
         alice_key, bob_key,disclosed_info,comm_iters = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._esignal,qber_est_0 =twin._eNN,twinfield = False,f_start = f,discl_k=discl_k)
     if hash_enabled:
