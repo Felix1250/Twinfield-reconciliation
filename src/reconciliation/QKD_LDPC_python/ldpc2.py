@@ -112,13 +112,13 @@ def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True
         com_iters_counter += com_iters
 
         #remove so much bits as were disclosed
-        arr2 = np.arange(0,len(correct_chunk))
-        np.random.shuffle(arr2) 
-        arr = arr2[len(correct_chunk)] #-this_iteration_disclosed:]
+        #arr2 = np.arange(0,len(correct_chunk))
+        #np.random.shuffle(arr2) 
+        #arr = arr2[len(correct_chunk)] #-this_iteration_disclosed:]
 
-        error_map = np.asarray(dec_chunk[arr], dtype=np.uint8)
-        faulty_chunk = np.asarray(faulty_chunk[arr], dtype=np.uint8)
-        correct_chunks.append(np.asarray(correct_chunk[arr], dtype=np.uint8))
+        error_map = np.asarray(dec_chunk, dtype=np.uint8)
+        faulty_chunk = np.asarray(faulty_chunk, dtype=np.uint8)
+        correct_chunks.append(np.asarray(correct_chunk, dtype=np.uint8))
         corrected_chunks.append(np.bitwise_xor(faulty_chunk,error_map))
 
     corrected_key = np.concatenate(corrected_chunks)
