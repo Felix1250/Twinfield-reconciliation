@@ -455,7 +455,7 @@ class Twinfield:
             else:
                 T = cls.phase_shift_average
 
-            print("T" + str(T))
+            print("T " + str(T))
             ephi =(T- 1/2*math.pow(math.e,-2 *cls.mu1)*s0)/(2*cls.mu1 * math.pow(math.e,-2 *cls.mu1) * s1)
             N_1 = 2 * (1 - cls.p_x)**2 * cls.p_z * (1 - cls.p_z) * cls.mu3 * math.pow(math.e, -cls.mu3) *len(alice_bits[0])
             #N_1 = 2 * (1 - 0.2)**2 * cls.p_z * (1 - cls.p_z) * cls.mu3 * math.pow(math.e, -cls.mu3) *len(alice_bits[0])

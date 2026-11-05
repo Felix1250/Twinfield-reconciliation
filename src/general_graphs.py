@@ -60,9 +60,9 @@ def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled =
 def simulate_comm_ea(path,ea,aopp_enabled = False,ldpc_enabled = False, hash_enabled = False, enable_twinfield=True,f=1.15,discl_k = 0.5):
     twin =twinfield_communication_tensorflow.Twinfield()
     twin.tf_communicate_load_settings(path)
-    twin.phase_shift_average = ea
+    
     alice_key, bob_key = twin.tf_communicat_load(path,aopp_enabled = aopp_enabled)
-
+    twin.phase_shift_average = ea
     comm_iters = 0
     error_rate = 0
 
