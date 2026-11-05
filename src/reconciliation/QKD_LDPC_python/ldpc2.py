@@ -33,7 +33,7 @@ def calc_params(k,n,R_range,qber):
     return R_min,s,p
 
 
-def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True,felix_impl =False,f_start = 1.15,discl_k = 0.5):
+def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True,felix_impl =False,f_start = 1.15,discl_k = 0.5,return_f = False):
     if qber_est == 0:
         qber_est = 0.0000001
     if len(correct_key) == 0 or qber_est >0.4999:
@@ -98,6 +98,7 @@ def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True
     corrected_chunks = []
     correct_chunks = []
     com_iters_counter = 0
+    f_rslt = []
     for faulty_chunk, correct_chunk in zip(faulty_blocks, correct_blocks):
         # If the last chunk is smaller, more shortened bits
         if len(faulty_chunk) < payload_per_block:
@@ -111,10 +112,8 @@ def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True
         disclosed_info += this_iteration_disclosed
         com_iters_counter += com_iters
 
-        #remove so much bits as were disclosed
-        #arr2 = np.arange(0,len(correct_chunk))
-        #np.random.shuffle(arr2) 
-        #arr = arr2[len(correct_chunk)] #-this_iteration_disclosed:]
+        f_cur = float(syndrome_length-p_n+add_info)/(n-p_n-s_n)/ec.h_b(qber_est)
+        f_rslt.append(f_cur)
 
         error_map = np.asarray(dec_chunk, dtype=np.uint8)
         faulty_chunk = np.asarray(faulty_chunk, dtype=np.uint8)
@@ -127,6 +126,9 @@ def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True
     print("Total remaining errors: " + str(np.sum(remaining_errors)))
     print("remaining errorrate: " + str(np.mean(remaining_errors)))
     print("remaining key length: " + str(len(corrected_key)))
+
+    if return_f:
+        return correct_key,corrected_key, disclosed_info, com_iters_counter, np.mean(f_rslt)
     return correct_key,corrected_key, disclosed_info, com_iters_counter
 
 

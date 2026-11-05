@@ -78,9 +78,42 @@ def simulate_comm_ea(path,ea,aopp_enabled = False,ldpc_enabled = False, hash_ena
     return signal_length, error_rate , key_rate , comm_iters, twin._ephi
 
 
+def simulate_comm_ldpc(path,ea,aopp_enabled = False,ldpc_enabled = False, hash_enabled = False,discl_k=0.5):
+    twin =twinfield_communication_tensorflow.Twinfield()
+    twin.tf_communicate_load_settings(path)
+    twin.phase_shift_average = ea
+    alice_key, bob_key = twin.tf_communicat_load(path,aopp_enabled = aopp_enabled)
+    datapoints = 20
+    comm_iters = np.zeros(datapoints)
+    key_rate = np.zeros(datapoints)
+    signal_length = np.zeros(datapoints)
+    error_rate = np.zeros(datapoints)
+    labels = []
+    fress =np.zeros(datapoints)
+    for i in range(datapoints):
+        f = 1.0 + 0.01*i
+        labels.append(f)
+        ea = 0.
+        print(path)
+        if ldpc_enabled:
+            alice_key_2, bob_key_2,disclosed_info,comm_iters_2, fres = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._esignal,qber_est_0 =twin._eNN,twinfield = False,f_start = f,discl_k=discl_k,return_f=True)
+        if hash_enabled:
+            alice_key_2, bob_key_2 = hashing.priv_ampl(alice_key_2, bob_key_2, twin._ephi,twin._n1,disclosed_info = disclosed_info)
+        signal_length_2 = len(alice_key_2)
+        if len(alice_key_2) > 0:
+            error_rate_2 = np.mean(np.abs(alice_key_2.astype(int) - bob_key_2.astype(int))) 
+        else: error_rate_2 = 0
+        key_rate_2 = (len(alice_key_2))/twin._N_pulses
+        signal_length[i] = signal_length_2
+        error_rate[i] = error_rate_2 
+        key_rate[i] =key_rate_2 
+        comm_iters[i] = comm_iters_2
+        fress[i] = fres
+    return signal_length, error_rate , key_rate , comm_iters, fress,labels
 
 
-def save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,ephi = None,csv_savepath = "temp.csv"):
+
+def save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,ephi = None,fres = None,csv_savepath = "temp.csv"):
     data = []
     for i in range(len(key_rate)):
         data.append([])
@@ -91,6 +124,8 @@ def save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,ephi = 
         data[i].append(comm_iters[i])
         if ephi is not None:
             data[i].append(ephi[i])
+        if fres is not None:
+            data[i].append(fres[i])
     with open(csv_savepath, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerows(data)

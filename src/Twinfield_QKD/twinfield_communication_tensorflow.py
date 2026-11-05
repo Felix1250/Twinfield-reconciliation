@@ -355,6 +355,7 @@ class Twinfield:
         n11pos = 0; n11neg = 0
         N11pos = 0; N11neg = 0
         n11neg_misal = 0; n11pos_misal = 0
+        #cls.phase_shift_average = 0
         for i in range(len(decoy_bits)):  
             x = decoy_bits[i][0]
             if alice_bits[1][x] == 0 and bob_bits[1][x] == 0:
@@ -446,15 +447,11 @@ class Twinfield:
             print("N10: " + str(N10))
             print("N01: " + str(N01))
         if s1 > 0:
-            if cls.phase_shift_average == 0:
-                print("no misalignment error")
-                if N11pos == 0 or N11neg == 0:
-                    T = 0
-                else:
-                    T= 1/2 * (n11pos / N11pos + n11neg / N11neg) 
+            print("no misalignment error")
+            if N11pos == 0 or N11neg == 0:
+                T = 0
             else:
-                T = cls.phase_shift_average
-
+                T= 1/2 * (n11pos / N11pos + n11neg / N11neg) 
             print("T " + str(T))
             ephi =(T- 1/2*math.pow(math.e,-2 *cls.mu1)*s0)/(2*cls.mu1 * math.pow(math.e,-2 *cls.mu1) * s1)
             N_1 = 2 * (1 - cls.p_x)**2 * cls.p_z * (1 - cls.p_z) * cls.mu3 * math.pow(math.e, -cls.mu3) *len(alice_bits[0])
