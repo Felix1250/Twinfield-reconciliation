@@ -290,6 +290,7 @@ def ldpc_rest(discl_k):
     savefolder = os.getcwd() + "/saves/pd2"
     labels = []
     savefile = savefolder + "/_pd" + str(5) + ".npz"
+    ea = 0
     signal_length, error_rate, key_rate, comm_iters,f,labels =general_graphs.simulate_comm_ldpc(savefile,ea,aopp_enabled = True,ldpc_enabled = True,hash_enabled=True,discl_k=discl_k)
     general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,fres = f,csv_savepath = os.getcwd() + "/figures/my_graph/ldpc2_" + str(discl_k)+".csv")
 
