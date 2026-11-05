@@ -114,7 +114,7 @@ def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True
         #remove so much bits as were disclosed
         arr2 = np.arange(0,len(correct_chunk))
         np.random.shuffle(arr2) 
-        arr = arr2[len(correct_chunk)-this_iteration_disclosed:]
+        arr = arr2[len(correct_chunk)] #-this_iteration_disclosed:]
 
         error_map = np.asarray(dec_chunk[arr], dtype=np.uint8)
         faulty_chunk = np.asarray(faulty_chunk[arr], dtype=np.uint8)

@@ -57,10 +57,10 @@ def scipy_toeplitz_hash_with_matrix(alice_key: np.ndarray, bob_key: np.ndarray, 
     print("Match:", np.array_equal(alice_hash, bob_hash))
     return alice_hash, bob_hash
 
-def priv_ampl(alice_key: np.ndarray, bob_key: np.ndarray, eph:float,n_1:int):
+def priv_ampl(alice_key: np.ndarray, bob_key: np.ndarray, eph:float,n_1:int,disclosed_info: int = 0):
     alice_key2,bob_key2  = after_EC(alice_key,bob_key)
     if alice_key is None:
         return [0][1]
-    m = calc_m(n_1,eph)
+    m = calc_m(n_1,eph) - disclosed_info
     print("m = " + str(m) )
     return scipy_toeplitz_hash_with_matrix(alice_key2,bob_key2,m)

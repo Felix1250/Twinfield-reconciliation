@@ -50,7 +50,7 @@ def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled =
     if ldpc_enabled:
         alice_key, bob_key,disclosed_info,comm_iters = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._eSS,qber_est_0 =twin._eNN,twinfield = enable_twinfield)
     if hash_enabled:
-        alice_key, bob_key = hashing.priv_ampl(alice_key, bob_key, twin._ephi,twin._n1)
+        alice_key, bob_key = hashing.priv_ampl(alice_key, bob_key, twin._ephi,twin._n1,disclosed_info = disclosed_info)
     signal_length = len(alice_key)
     if len(alice_key) > 0:
         error_rate = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))        
@@ -70,14 +70,17 @@ def simulate_comm_ea(path,ea,aopp_enabled = False,ldpc_enabled = False, hash_ena
     if ldpc_enabled:
         alice_key, bob_key,disclosed_info,comm_iters = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._esignal,qber_est_0 =twin._eNN,twinfield = False,f_start = f,discl_k=discl_k)
     if hash_enabled:
-        alice_key, bob_key = hashing.priv_ampl(alice_key, bob_key, twin._ephi,twin._n1)
+        alice_key, bob_key = hashing.priv_ampl(alice_key, bob_key, twin._ephi,twin._n1,disclosed_info = disclosed_info)
     signal_length = len(alice_key)
     if len(alice_key) > 0:
         error_rate = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))        
     key_rate = (len(alice_key))/twin._N_pulses
-    return signal_length, error_rate , key_rate , comm_iters
+    return signal_length, error_rate , key_rate , comm_iters, twin._ephi
 
-def save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = "temp.csv"):
+
+
+
+def save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,ephi = None,csv_savepath = "temp.csv"):
     data = []
     for i in range(len(key_rate)):
         data.append([])
@@ -86,6 +89,8 @@ def save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_sav
         data[i].append(labels[i])
         data[i].append(signal_length[i])
         data[i].append(comm_iters[i])
+        if ephi is not None:
+            data[i].append(ephi[i])
     with open(csv_savepath, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerows(data)

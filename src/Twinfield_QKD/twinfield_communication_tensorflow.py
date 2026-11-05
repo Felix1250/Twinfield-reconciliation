@@ -549,7 +549,7 @@ class Twinfield:
         cls._error_rate ,cls._error_number= tf_utils.print_error_rate(alice_key,bob_key)
         print("error rate" + str(cls._error_rate))
         tf_utils.make_heatmap(measures,"figures/heatmap.png")  
-
+    
         if aopp_enabled:
             alice_key, bob_key,cls._N0,cls._N1 = aopp.aopp(alice_key,bob_key)
         # do analysis on the signal window
