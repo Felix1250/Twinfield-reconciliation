@@ -43,7 +43,7 @@ def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled =
     if len(alice_key) > 0:
         error_rate = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))        
     key_rate = (len(alice_key))/twin._N_pulses
-    print("hey")
+
     return signal_length, error_rate , key_rate , comm_iters
 
 if __name__ == '__main__':
