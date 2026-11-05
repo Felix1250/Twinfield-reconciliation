@@ -132,7 +132,7 @@ class Twinfield:
 
     batch_size = 16000 # defines the size for each batch of single photon events
     n_percentage = 0.05
-
+    disable_lambda = False
     #variables for export
     _error_rate = 0
     _N0 = 0
@@ -143,6 +143,7 @@ class Twinfield:
     _eSS = 0
     _ephi = 0
     _decoy_length = 0
+    T=0
     
     _error_number = 0
     _signal_length = 0
@@ -453,6 +454,7 @@ class Twinfield:
             else:
                 T= 1/2 * (n11pos / N11pos + n11neg / N11neg) 
             print("T " + str(T))
+            cls.T = T
             ephi =(T- 1/2*math.pow(math.e,-2 *cls.mu1)*s0)/(2*cls.mu1 * math.pow(math.e,-2 *cls.mu1) * s1)
             N_1 = 2 * (1 - cls.p_x)**2 * cls.p_z * (1 - cls.p_z) * cls.mu3 * math.pow(math.e, -cls.mu3) *len(alice_bits[0])
             #N_1 = 2 * (1 - 0.2)**2 * cls.p_z * (1 - cls.p_z) * cls.mu3 * math.pow(math.e, -cls.mu3) *len(alice_bits[0])
@@ -489,7 +491,8 @@ class Twinfield:
             print(cls.loss_1)
             distance = (-10 * math.log10(cls.loss_1))/0.2
         else: distance = 0
-        cls.s_phaseSlice = 0.25 + 0.45/450 * distance
+        if not cls.disable_lambda:
+            cls.s_phaseSlice = 0.25 + 0.45/450 * distance
 
         #-----------------test---------------------
         #psi_AB = cls.generate_random_phaseShift(length)

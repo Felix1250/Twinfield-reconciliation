@@ -286,6 +286,24 @@ def ea_rest():
         signal_length[i], error_rate[i], key_rate[i], comm_iters[i],ephi[i]=general_graphs.simulate_comm_ea(savefile,ea,aopp_enabled = True,ldpc_enabled = True, enable_twinfield=True,hash_enabled=True)
     general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,ephi=ephi,csv_savepath = os.getcwd() + "/figures/my_graph/ea_phi2.csv")
 
+def lambda_rest():
+    savefolder = os.getcwd() + "/saves/pd2"
+    datapoints = 10
+    comm_iters = np.zeros(datapoints)
+    key_rate = np.zeros(datapoints)
+    signal_length = np.zeros(datapoints)
+    error_rate = np.zeros(datapoints)
+    ephi = np.zeros(datapoints)
+    labels = []
+    for i in range(datapoints):
+        savefile = savefolder + "/_pd" + str(5) + ".npz"
+        savefile = os.getcwd() + "/saves/pd2.npz"
+        ea = 0
+        lam = i/100*5 + 0.05
+        labels.append(f"{ea:.2f}")
+        signal_length[i], error_rate[i], key_rate[i], comm_iters[i],ephi[i]=general_graphs.simulate_comm_ea(savefile,ea,aopp_enabled = True,ldpc_enabled = True, enable_twinfield=True,hash_enabled=True,lam = lam)
+    general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,ephi=ephi,csv_savepath = os.getcwd() + "/figures/my_graph/ea_phi2.csv")
+
 def ldpc_rest(discl_k):
     savefolder = os.getcwd() + "/saves/pd2"
     labels = []
@@ -307,6 +325,8 @@ def dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,cou
         labels.append(i/50*700)
         signal_length[i], error_rate[i], key_rate[i], comm_iters[i]=general_graphs.simulate_comm(savefile,aopp_enabled = aopp_enabled,ldpc_enabled = True, enable_twinfield=enable_twinfield,hash_enabled=hash_enabled)
     general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/dist_" + str(enable_twinfield) +"_" + str(counter)+ ".csv")
+
+
 
 def dist_general(things = 0,aopp_enabled = True,hash_enabled = True,ldpc_enabled = True):
     savefolder = os.getcwd() + "/saves/dist"
@@ -345,15 +365,16 @@ if __name__ == "__main__":
     #ea()
     #eta()
     #pd()
-    eta_rest()
-    ldpc_rest(0.5)
-    ldpc_rest(0.75)
-    ldpc_rest(1)
+    #eta_rest()
+    #ldpc_rest(0.5)
+    #ldpc_rest(0.75)
+    #ldpc_rest(1)
+    lambda_rest()
     #ea_rest()
     #pd_rest()
     #pd_rest_aopp()
-    #dist_ldpc(enable_twinfield=True,aopp_enabled = True,hash_enabled = True,counter = 0)
-    #dist_ldpc(enable_twinfield=False,aopp_enabled = False,hash_enabled = True,counter = 1)
+    #dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 0)
+    #dist_ldpc(enable_twinfield=False,aopp_enabled = True,hash_enabled = True,counter = 1)
     #dist()
     #pzmu()
 
