@@ -475,10 +475,6 @@ class Twinfield:
                 print("Na: " + str(Na))
                 cls._n1 = (1/2*n_1)/cls._N0 * (1/2*n_1)/cls._N1 *Na
             cls._ephi = e_phi
-            if cls._ephi >=1:
-                cls._ephi = 0.999999999999
-            if cls._ephi < 0:
-                cls._ephi  = 0
             
             
             print("---------------------------------------")

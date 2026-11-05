@@ -31,13 +31,13 @@ def after_EC(alice_key: np.ndarray, bob_key: np.ndarray, seed: np.ndarray = np.e
     return None,None
 
 
-def calc_m(length_key_before_reconciliation,e_ph):
+def calc_m(length_key_before_reconciliation,e_ph,disclosed_info):
     if e_ph <= 0 or e_ph >= 1:
         H = 0
     else:
         H = - e_ph * math.log2(e_ph) - (1 - e_ph)  * math.log2(1 - e_ph)
     factor =   - math.log2(2/error) - 2 * math.log2( 1 / ( math.sqrt(2) * error * error))
-    return max(math.ceil(length_key_before_reconciliation * (1-H) + factor),0)
+    return max(math.ceil(length_key_before_reconciliation * (1-H) + factor)- disclosed_info,0)
 
 def scipy_toeplitz_hash_with_matrix(alice_key: np.ndarray, bob_key: np.ndarray, m: int, seed: np.ndarray = np.empty(0, dtype=np.uint8)):
     if len(alice_key) != len(bob_key):
@@ -61,6 +61,6 @@ def priv_ampl(alice_key: np.ndarray, bob_key: np.ndarray, eph:float,n_1:int,disc
     alice_key2,bob_key2  = after_EC(alice_key,bob_key)
     if alice_key is None:
         return [0][1]
-    m = calc_m(n_1,eph) - disclosed_info
+    m = calc_m(n_1,eph, disclosed_info) 
     print("m = " + str(m) )
     return scipy_toeplitz_hash_with_matrix(alice_key2,bob_key2,m)

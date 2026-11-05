@@ -299,7 +299,7 @@ def ldpc_rest(discl_k):
         f = 1.0 + 0.01*i
         labels.append(f"{f:.2f}")
         ea = 0.
-        signal_length[i], error_rate[i], key_rate[i], comm_iters[i]=general_graphs.simulate_comm_ea(savefile,ea,aopp_enabled = True,ldpc_enabled = True, enable_twinfield=True,hash_enabled=True,f=f,discl_k=discl_k)
+        signal_length[i], error_rate[i], key_rate[i], comm_iters[i],ephi=general_graphs.simulate_comm_ea(savefile,ea,aopp_enabled = True,ldpc_enabled = True, enable_twinfield=True,hash_enabled=True,f=f,discl_k=discl_k)
     general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/ldpc " + str(discl_k)+".csv")
 
 def dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 0):
