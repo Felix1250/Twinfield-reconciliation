@@ -272,7 +272,7 @@ def eta_rest():
 
 def ea_rest():
     savefolder = os.getcwd() + "/saves/pd2"
-    datapoints = 10
+    datapoints = 20
     comm_iters = np.zeros(datapoints)
     key_rate = np.zeros(datapoints)
     signal_length = np.zeros(datapoints)
@@ -281,10 +281,10 @@ def ea_rest():
     labels = []
     for i in range(datapoints):
         savefile = savefolder + "/_pd" + str(5) + ".npz"
-        ea = i/ (datapoints )/8
+        ea = i/ (datapoints ) * (0.06)
         labels.append(f"{ea:.2f}")
         signal_length[i], error_rate[i], key_rate[i], comm_iters[i],ephi[i]=general_graphs.simulate_comm_ea(savefile,ea,aopp_enabled = True,ldpc_enabled = True, enable_twinfield=True,hash_enabled=True)
-    general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,ephi=ephi,csv_savepath = os.getcwd() + "/figures/my_graph/ea_phi2.csv")
+    general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,ephi=ephi,csv_savepath = os.getcwd() + "/figures/my_graph/ea_phi3.csv")
 
 def lambda_rest():
     savefolder = os.getcwd() + "/saves/pd2"
@@ -297,12 +297,11 @@ def lambda_rest():
     labels = []
     for i in range(datapoints):
         savefile = savefolder + "/_pd" + str(5) + ".npz"
-        savefile = os.getcwd() + "/saves/pd2.npz"
         ea = 0
         lam = i/100*5 + 0.05
-        labels.append(f"{ea:.2f}")
+        labels.append(f"{lam:.2f}")
         signal_length[i], error_rate[i], key_rate[i], comm_iters[i],ephi[i]=general_graphs.simulate_comm_ea(savefile,ea,aopp_enabled = True,ldpc_enabled = True, enable_twinfield=True,hash_enabled=True,lam = lam)
-    general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,ephi=ephi,csv_savepath = os.getcwd() + "/figures/my_graph/ea_phi2.csv")
+    general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,ephi=ephi,csv_savepath = os.getcwd() + "/figures/my_graph/lambda.csv")
 
 def ldpc_rest(discl_k):
     savefolder = os.getcwd() + "/saves/pd2"
@@ -370,7 +369,7 @@ if __name__ == "__main__":
     #ldpc_rest(0.75)
     #ldpc_rest(1)
     lambda_rest()
-    #ea_rest()
+    ea_rest()
     #pd_rest()
     #pd_rest_aopp()
     #dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 0)
