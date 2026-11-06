@@ -516,6 +516,8 @@ class Twinfield:
                         decoy_bits.append((i,1))
                     elif measures[i][1] == 0 and measures[i][0] != measures[i][1]: #only if detector 1 clicks
                         decoy_bits.append((i,0))
+                elif (measures[i][1] == 0 or measures[i][0] == 0) and measures[i][0] != measures[i][1]:
+                     decoy_bits.append((i,2))
                 else:
                     decoy_bits.append((i,-1))
             elif alice_bits[0][i] == 1 and bob_bits[0][i] == 1: #check whether both use the x basis
