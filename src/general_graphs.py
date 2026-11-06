@@ -65,7 +65,8 @@ def simulate_comm_ea(path,ea,aopp_enabled = False,ldpc_enabled = False, hash_ena
         twin.disable_lambda = True
         twin.s_phaseSlice = lam
     alice_key, bob_key = twin.tf_communicat_load(path,aopp_enabled = aopp_enabled)
-    
+    if lam is not None:
+        return twin.T, twin._ephi, twin.n_error,0,0
     comm_iters = 0
     error_rate = 0
 

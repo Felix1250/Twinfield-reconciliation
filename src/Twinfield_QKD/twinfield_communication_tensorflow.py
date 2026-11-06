@@ -144,6 +144,7 @@ class Twinfield:
     _ephi = 0
     _decoy_length = 0
     T=0
+    n_error = 0
     
     _error_number = 0
     _signal_length = 0
@@ -453,6 +454,7 @@ class Twinfield:
                 T = 0
             else:
                 T= 1/2 * (n11pos / N11pos + n11neg / N11neg) 
+                cls.n_error =n11pos + n11neg
             print("T " + str(T))
             cls.T = T
             ephi =(T- 1/2*math.pow(math.e,-2 *cls.mu1)*s0)/(2*cls.mu1 * math.pow(math.e,-2 *cls.mu1) * s1)
