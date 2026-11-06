@@ -45,7 +45,8 @@ def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled =
 
     comm_iters = 0
     error_rate = 0
-
+    if twin.n1 == 0:
+        return 0,0,0,0
     print(dir(ldpc2))
     if ldpc_enabled:
         alice_key, bob_key,disclosed_info,comm_iters = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._eSS,qber_est_0 =twin._eNN,twinfield = enable_twinfield)
