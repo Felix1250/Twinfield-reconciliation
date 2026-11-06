@@ -235,7 +235,7 @@ All the aftercomm stuff + either making graphs out of it or just saving it in cs
 
 def pd_rest():
     savefolder = os.getcwd() + "/saves/pd2"
-    datapoints = 10
+    datapoints = 6
     comm_iters = np.zeros(datapoints)
     key_rate = np.zeros(datapoints)
     signal_length = np.zeros(datapoints)
@@ -250,14 +250,17 @@ def pd_rest():
 
 def pd_rest_aopp():
     savefolder = os.getcwd() + "/saves/pd"
-    error_rate = np.zeros(datapoints)
+    datapoints =6
+    comm_iters = np.zeros(datapoints)
     key_rate = np.zeros(datapoints)
+    signal_length = np.zeros(datapoints)
+    error_rate = np.zeros(datapoints)
     labels = []
     for i in range(datapoints):
         savefile = savefolder + "/_pd" + str(i) + ".npz"
         labels.append(f"$10^{{-{i}}}$")
-        signal_length, error_rate[i] , key_rate[i] , comm_iters=general_graphs.simulate_comm(savefile,aopp_enabled=True)
-    general_graphs.plot_general(key_rate, error_rate,labels,os.getcwd() + "/figures/my_graph/pd_aopp.png",x_label="'p_d",csv_savepath = os.getcwd() + "/figures/my_graph/pd_aopp.csv")
+        signal_length[i], error_rate[i] , key_rate[i] , comm_iters[i]=general_graphs.simulate_comm(savefile,aopp_enabled=True)
+    general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/pd2_"  + ".csv")
         
 def eta_rest():
     savefolder = os.getcwd() + "/saves/eta"
@@ -368,12 +371,12 @@ if __name__ == "__main__":
     #ldpc_rest(0.5)
     #ldpc_rest(0.75)
     #ldpc_rest(1)
-    lambda_rest()
-    ea_rest()
-    #pd_rest()
-    #pd_rest_aopp()
-    #dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 0)
-    #dist_ldpc(enable_twinfield=False,aopp_enabled = True,hash_enabled = True,counter = 1)
+    #lambda_rest()
+    #ea_rest()
+    pd_rest()
+    pd_rest_aopp()
+    dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 0)
+    dist_ldpc(enable_twinfield=False,aopp_enabled = True,hash_enabled = True,counter = 1)
     #dist()
     #pzmu()
 

@@ -449,7 +449,6 @@ class Twinfield:
             print("N10: " + str(N10))
             print("N01: " + str(N01))
         if s1 > 0:
-            print("no misalignment error")
             if N11pos == 0 or N11neg == 0:
                 T = 0
             else:

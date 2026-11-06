@@ -33,7 +33,7 @@ def calc_params(k,n,R_range,qber):
     return R_min,s,p
 
 
-def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True,felix_impl =False,f_start = 1.15,discl_k = 0.5,return_f = False):
+def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True,felix_impl =False,f_start = 1.09,discl_k = 0.75,return_f = False):
     if qber_est == 0:
         qber_est = 0.0000001
     if len(correct_key) == 0 or qber_est >0.4999:
