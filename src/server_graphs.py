@@ -167,20 +167,7 @@ def generate_ea_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
             distance=0,
         )
 
-def generate_dist_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
-    datapoints = 50
-    savefolder = os.getcwd() + "/saves/dist"
-    Path(savefolder).parent.mkdir(parents=True, exist_ok=True)
-    for i in range(datapoints):
-        savefile = savefolder + "/_dist" + str(i) + ".npz"
-        yield Twinfield_job(
-            base_path=base_path,
-            savefile=savefile,
-            pd=math.pow(10, -5),
-            eta=0.8,
-            ea=0.15,
-            distance=i/datapoints*350, #max 350km one side so 700km total
-        )
+
 
 def generate_pzmu_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
     datapoints = 5
