@@ -220,7 +220,7 @@ def ea():
 def dist():
     result_dir: Path = Path.cwd() / "results"
     gen = generate_dist_jobs(result_dir)
-    paralell.schedule(gen)
+    paralell.schedule(gen,max_parallel_jobs=25)
 
 def pzmu():
     result_dir: Path = Path.cwd() / "pzmu"
@@ -371,14 +371,15 @@ if __name__ == "__main__":
     #ldpc_rest(0.5)
     #ldpc_rest(0.75)
     #ldpc_rest(1)
-    lambda_rest()
+    #lambda_rest()
     #ea_rest()
     #pd_rest()
     #pd_rest_aopp()
-    dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 0)
-    dist_ldpc(enable_twinfield=False,aopp_enabled = True,hash_enabled = True,counter = 1)
+    #dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 0)
+    #dist_ldpc(enable_twinfield=False,aopp_enabled = True,hash_enabled = True,counter = 1)
     #dist()
-    pzmu()
+    dist()
+    pzmu_rest()
 
     #
     #dist_ldpc(enable_twinfield = True)
