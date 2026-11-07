@@ -49,7 +49,11 @@ def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled =
         return 0,0,0,0
     print(dir(ldpc2))
     if ldpc_enabled:
-        alice_key, bob_key,disclosed_info,comm_iters = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._eSS,qber_est_0 =twin._eNN,twinfield = enable_twinfield)
+        if enable_twinfield:
+            alice_key, bob_key,disclosed_info,comm_iters = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._esignal,qber_est_0 =twin.pd0,twinfield = True)
+        else:
+            alice_key, bob_key,disclosed_info,comm_iters = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._esignal,qber_est_0 =twin.pd0,twinfield = False)
+            print(alice_key)
     if hash_enabled:
         alice_key, bob_key = hashing.priv_ampl(alice_key, bob_key, twin._ephi,twin._n1,disclosed_info = disclosed_info)
     signal_length = len(alice_key)

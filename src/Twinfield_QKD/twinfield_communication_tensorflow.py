@@ -20,7 +20,7 @@ tf.get_logger().setLevel('ERROR')
 
 import aopp
 
-# --- Worker function MUST be defined at top-level for multiprocessing spawn/fork ---
+# --- Worker function, because otherwise strawberry fields runs into a memory leak, so strawberry fields has to be reinitialized  ---
 def _run_trial_worker(
     queue,
     length,
@@ -123,7 +123,7 @@ class Twinfield:
     loss_1 = 0#math.exp(-100/22) #losses for both distances, as the distances do not have to be equal
     loss_2 = 0#math.exp(-100/22)
 
-    phase_shift_average = 0.15 #missaligment error 
+    phase_shift_average = 0 #missaligment error 
 
     # variables for aftercomm
 

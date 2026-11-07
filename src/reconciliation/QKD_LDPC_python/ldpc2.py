@@ -40,6 +40,8 @@ def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True
         return correct_key,faulty_key, 0, 0
     #this loades a code from teh ieee codes with a length of 1944
 
+    # this is how i tried to determine R,s,p
+    # but i sadly do not understand enough about this stuff and i did not have time to calculate this through
     if felix_impl:
         n,codes = determine_codes_and_length(correct_key)
 
