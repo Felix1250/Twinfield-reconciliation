@@ -45,7 +45,7 @@ def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled =
 
     comm_iters = 0
     error_rate = 0
-    if twin.n1 == 0:
+    if twin._n1 == 0:
         return 0,0,0,0
     print(dir(ldpc2))
     if ldpc_enabled:
