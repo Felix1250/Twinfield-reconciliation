@@ -245,7 +245,7 @@ def pd_rest():
     for i in range(datapoints):
         savefile = savefolder + "/_pd" + str(i) + ".npz"
         labels.append(f"$10^{{-{i}}}$")
-        signal_length[i], error_rate[i] , key_rate[i] , comm_iters[i]=general_graphs.simulate_comm(savefile)
+        signal_length[i], error_rate[i] , key_rate[i] , comm_iters[i]=general_graphs.simulate_comm(savefile,aopp_enabled = True,ldpc_enabled = True, hash_enabled=True,enable_twinfield=False)
     general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/pd2_"  + ".csv")
 
 def pd_rest_aopp():
@@ -373,9 +373,9 @@ if __name__ == "__main__":
     #ldpc_rest(1)
     #lambda_rest()
     #ea_rest()
-    #pd_rest()
+    pd_rest()
     #pd_rest_aopp()
-    dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 0)
+    #dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 0)
     dist_ldpc(enable_twinfield=False,aopp_enabled = True,hash_enabled = True,counter = 1)
     #dist()
     #pzmu()

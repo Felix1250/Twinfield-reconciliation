@@ -37,7 +37,7 @@ def simulate_physics(path,pd = math.pow(10,-5) , eta  =0.8, ea = 0.15,distance =
     twin.tf_communicate(tf_utils.generate_seed(),tf_utils.generate_seed(),length,path)
 
 
-def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled = False, enable_twinfield=True):
+def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled = False, enable_twinfield=False):
     twin =twinfield_communication_tensorflow.Twinfield()
     twin.tf_communicate_load_settings(path)
     twin.phase_shift_average = 0
