@@ -107,18 +107,18 @@ datapoints = 20
 
 def generate_pd_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
     datapoints = 10
-    savefolder = os.getcwd() + "/saves/pd2"
+    savefolder = os.getcwd() + "/saves/pd3"
     Path(savefolder).parent.mkdir(parents=True, exist_ok=True)
     for i in range(datapoints):
         savefile = savefolder + "/_pd" + str(i) + ".npz"
         yield Twinfield_job(
             base_path=base_path,
             savefile=savefile,
-            pd=math.pow(10, -i*10/20),
+            pd=math.pow(10, -i),
             eta=0.8,
             ea=0.15,
             distance=0,
-            length = 1000000000
+            length = 100000000
         )
 
 def generate_dist_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
@@ -173,7 +173,7 @@ def generate_pzmu_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
     datapoints = 5
     savefolder = os.getcwd() + "/saves/pzmu"
     Path(savefolder).parent.mkdir(parents=True, exist_ok=True)
-    for i in range(datapoints):
+    for i in range(datapoints,datapoints*2):
         for j in range(datapoints):
             savefile = savefolder + "/_pz" + str(i) + "mu" + str(j) +".npz"
             yield Twinfield_job(
@@ -190,9 +190,9 @@ functions to create the jobs and run them in parallel, one job per CPU core
 '''
 
 def pd():
-    result_dir: Path = Path.cwd() / "results/pd2"
+    result_dir: Path = Path.cwd() / "results/pd3"
     gen = generate_pd_jobs(result_dir)
-    paralell.schedule(gen,max_parallel_jobs=6)
+    paralell.schedule(gen,max_parallel_jobs=10)
 
 def eta():
     result_dir: Path = Path.cwd() / "results/eta"
@@ -211,7 +211,7 @@ def dist():
 
 def pzmu():
     result_dir: Path = Path.cwd() / "pzmu"
-    gen = generate_pzmu_jobs(result_dir)
+    gen = generate_pzmu_jobs(result_dir,max_parallel_jobs=10)
     paralell.schedule(gen)
 
 '''
@@ -323,7 +323,7 @@ def dist_general(things = 0,aopp_enabled = True,hash_enabled = True,ldpc_enabled
     comm_iters = np.zeros(datapoints)
     key_rate = np.zeros(datapoints)
     signal_length = np.zeros(datapoints)
-    error_rate = np.zeros(datapoints)
+    error_rate = np.zeros(datapoints)   
     labels = []
     for i in range(datapoints):
         savefile = savefolder + "/_dist" + str(i) + ".npz"
@@ -365,8 +365,9 @@ if __name__ == "__main__":
     #dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 0)
     #dist_ldpc(enable_twinfield=False,aopp_enabled = True,hash_enabled = True,counter = 1)
     #dist()
-    dist()
-    pzmu_rest()
+    pd()
+    pzmu()
+    #pzmu_rest()
 
     #
     #dist_ldpc(enable_twinfield = True)
