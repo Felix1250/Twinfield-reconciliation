@@ -335,7 +335,7 @@ def pzmu_rest(aopp_enabled = True,hash_enabled = True,ldpc_enabled = True):
     things = 0
     savefolder = os.getcwd() + "/saves/pzmu"
     datapoints = 5
-    for i in range(datapoints):
+    for i in range(7):
         comm_iters = np.zeros(datapoints)
         key_rate = np.zeros(datapoints)
         signal_length = np.zeros(datapoints)
@@ -365,9 +365,9 @@ if __name__ == "__main__":
     #dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 0)
     #dist_ldpc(enable_twinfield=False,aopp_enabled = True,hash_enabled = True,counter = 1)
     #dist()
-    pd()
-    pzmu()
-    #pzmu_rest()
+    #pd()
+    #pzmu()
+    pzmu_rest()
 
     #
     #dist_ldpc(enable_twinfield = True)

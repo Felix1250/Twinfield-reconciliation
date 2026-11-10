@@ -15,7 +15,7 @@ loss_2 = math.exp(-100/22)
 prog = sf.Program(2)
 
 with prog.context as q:
-    Coherent(alpha1,0   ) | q[0]
+    Coherent(0,0   ) | q[0]
     Coherent(alpha1,0) | q[1]
     #ops.LossChannel(loss_2) | q[1]
     ops.BSgate(math.pi/4, math.pi/2) | (q[0], q[1])
