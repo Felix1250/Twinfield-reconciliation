@@ -173,8 +173,8 @@ def generate_pzmu_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
     datapoints = 5
     savefolder = os.getcwd() + "/saves/pzmu"
     Path(savefolder).parent.mkdir(parents=True, exist_ok=True)
-    for i in range(datapoints,datapoints*2):
-        for j in range(datapoints):
+    for i in range(7):
+        for j in range(5,7):
             savefile = savefolder + "/_pz" + str(i) + "mu" + str(j) +".npz"
             yield Twinfield_job(
                 base_path=base_path,
@@ -211,7 +211,7 @@ def dist():
 
 def pzmu():
     result_dir: Path = Path.cwd() / "pzmu"
-    gen = generate_pzmu_jobs(result_dir,max_parallel_jobs=10)
+    gen = generate_pzmu_jobs(result_dir)
     paralell.schedule(gen)
 
 '''
