@@ -1,3 +1,9 @@
+'''
+main twinfield stuff happens here. 
+
+'''
+
+
 import os
 import random
 import numpy as np
@@ -38,12 +44,12 @@ def _run_trial_worker(
 
     prog = sf.Program(2)
 
-    phase_A = prog.params("alice_p")
+    phase_A = prog.params("alice_p") #tensorflow shenanigans otherwise they take the same input all the time
     phase_B = prog.params("bob_p")
     amplitude_A = prog.params("alice_A")
     amplitude_B = prog.params("bob_A")
 
-    theta = np.float32(np.pi / 4)
+    theta = np.float32(np.pi / 4) #symmetrical beamsplitter
     phi = np.float32(np.pi / 2)
 
     with prog.context as q:
@@ -80,7 +86,7 @@ def _run_trial_worker(
         measures[i][0] = int(result.samples[i][0][0])
         measures[i][1] = int(result.samples[i][0][1])
 
-    for j in range(length):
+    for j in range(length): #this is the detector efficiency
         for i in range(int(measures[j][0])):
             if random.random() > eta1:
                 measures[j][0] -= 1
@@ -94,14 +100,17 @@ def _run_trial_worker(
         if random.random() < pd1:
             measures[j][1] += 1
 
-    del eng
+    del eng #somehow this did not work while doing it in the class
     del prog
     tf.keras.backend.clear_session()
 
     # Put the resulting matrix into the multiprocessing queue
     queue.put(measures)
 
+'''
+Twinfield class. jsut very conveniet to save and load parameters
 
+'''
 class Twinfield:
     #variables for generating
     pd0 = math.pow(10,-5) #darkcount of each detector individually
@@ -138,7 +147,7 @@ class Twinfield:
     _N0 = 0
     _N1 = 0
     _n1 = 0
-    _esignal = 0
+    _esignal = 0 
     _eNN = 0
     _eSS = 0
     _ephi = 0
@@ -154,7 +163,9 @@ class Twinfield:
     _emu1 = 0
     _emu2= 0
     
-
+    '''
+    old way of simulating the misalignment error. did not make send
+    '''
     def generate_random_phaseShift(cls,length):
         psi_AB = np.random.normal(loc=0, scale=cls.phase_shift_average *2* math.pi, size=length)
         for i in range(length):
@@ -162,11 +173,11 @@ class Twinfield:
         
         return psi_AB
 
+    '''
+    creates the pulses, with window, intensity, phase, etc
+    '''
     def generate_random_Qbits(cls,seed, length):
         random.seed(seed)
-
-
-
         #generate random qubits
         bit_vector = np.zeros(length)
         phase_vector = np.zeros(length)
@@ -180,7 +191,7 @@ class Twinfield:
             if random.random() < cls.p_x:
                 window_vector[i] = 0
                 j = random.random()                
-                if j < cls.p_1:
+                if j < cls.p_1: #
                     bit_vector[i] = 1
                     phase_vector[i] = random.uniform(0,2*math.pi)
                     amplitude_vector[i] = np.sqrt(cls.mu1)
@@ -208,6 +219,10 @@ class Twinfield:
         qbits = [window_vector,bit_vector,phase_vector, amplitude_vector]
         return qbits
 
+
+    '''
+    this runs the worker thingy from earlier. otherwise memory leak
+    '''
     def run_trial(self, alice_bits, bob_bits, start, finish):
         length = finish - start
 
@@ -247,6 +262,9 @@ class Twinfield:
 
         return measures
 
+    '''
+    calculates the error rate in the signal window
+    '''
     def calc_ez(cls,alice_key,bob_key,n,counter_signal_window):
         if n > len(alice_key):
             print("too many error test bits for key length")
@@ -260,7 +278,7 @@ class Twinfield:
         counter_NN = 0
         counter_SN = 0
         counter_SS = 0
-        for i in range(len(arr_test)):
+        for i in range(len(arr_test)): #check for errors in the window
             if alice_key[arr_test[i]] == 1 and bob_key[arr_test[i]] == 0:
                 counter_SS += 1
             elif alice_key[arr_test[i]] == 0 and bob_key[arr_test[i]] == 1:
@@ -281,8 +299,13 @@ class Twinfield:
 
 
 
-
+    '''
+    calculates the error rates in the decoy window
+    bane of my existence    
+    '''
     def calc_ex(cls,alice_bits,bob_bits,decoy_bits,psi_AB,aopp_enabled):
+
+        #chernoff bound calculation
         xi = 1/len(alice_bits)
         log_xi2 = np.log(xi / 2)
         c = -log_xi2 
@@ -358,27 +381,29 @@ class Twinfield:
         N11pos = 0; N11neg = 0
         n11neg_misal = 0; n11pos_misal = 0
         #cls.phase_shift_average = 0
+
+        # iterate over the entire decoy window and check the cases to calculate the yield
         for i in range(len(decoy_bits)):  
             x = decoy_bits[i][0]
-            if alice_bits[1][x] == 0 and bob_bits[1][x] == 0:
+            if alice_bits[1][x] == 0 and bob_bits[1][x] == 0: #no on sent
                 N0 +=1
-                if decoy_bits[i][1] != -1: n0 +=1                
-            elif alice_bits[1][x] == 1 and bob_bits[1][x] == 1:
-                if decoy_bits[i][1] != -1:   
-                    if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) < 0:
+                if decoy_bits[i][1] != -1: n0 +=1         #check for a detector click       
+            elif alice_bits[1][x] == 1 and bob_bits[1][x] == 1: # both send, here is the only part in the protocol where phase is relevant
+                if decoy_bits[i][1] != -1:   #check for a detector click  
+                    if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) < 0: #check which phase difference it has
                         N11neg +=1
-                        if decoy_bits[i][1] == 0:
+                        if decoy_bits[i][1] == 0: #wrongful event
                             n11neg +=1
                             cls._emu1 +=1
-                        elif random.random() < cls.phase_shift_average:
+                        elif random.random() < cls.phase_shift_average: #misalignment error
                             n11neg +=1
                             n11neg_misal += 1
-                    if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) > 0 :
+                    if tf_utils.pos_neg_diff(alice_bits[2][x], bob_bits[2][x]) > 0 : #check the phase difference
                         N11pos +=1
-                        if decoy_bits[i][1] == 1:
+                        if decoy_bits[i][1] == 1: #wrongful event
                             n11pos +=1
                             cls._emu1 +=1
-                        elif random.random() < cls.phase_shift_average:
+                        elif random.random() < cls.phase_shift_average: #misalignment error
                             n11pos +=1
                             n11pos_misal += 1
                     
@@ -390,17 +415,18 @@ class Twinfield:
             #        cls._emu2 +=1
             elif alice_bits[1][x] == 0 and bob_bits[1][x] == 1:
                 N01 +=1
-                if decoy_bits[i][1] != -1: n01 +=1    
+                if decoy_bits[i][1] != -1: n01 +=1   #check for a detector click   
             elif alice_bits[1][x] == 1 and bob_bits[1][x] == 0:
                 N10 +=1
-                if decoy_bits[i][1] != -1: n10 +=1    
+                if decoy_bits[i][1] != -1: n10 +=1    #check for a detector click  
             elif alice_bits[1][x] == 0 and bob_bits[1][x] == 2:
                 N02 +=1
-                if decoy_bits[i][1] != -1: n02 +=1    
+                if decoy_bits[i][1] != -1: n02 +=1    #check for a detector click  
             elif alice_bits[1][x] == 2 and bob_bits[1][x] == 0:
                 N20 +=1
-                if decoy_bits[i][1] != -1: n20 +=1    
+                if decoy_bits[i][1] != -1: n20 +=1    #check for a detector click  
 
+        # estimate the yields
         s0 = n0 / N0 if N0 != 0 else 0.0
         s01 = n01/N01 if N01 != 0 else 0.0
         s10 = n10/N10 if N10 != 0 else 0.0
@@ -412,24 +438,20 @@ class Twinfield:
         print("N02 " + str(n02) + "/" + str(N02))
         print("N20 " + str(n20) + "/" + str(N20))
 
+        #bound the yields
         _s0 = phi_U_S(n0)/N0 if N0 != 0 else 0.0
         _s02 = phi_U_S(n02)/N02 if N02 != 0 else 0.0
         _s20 = phi_U_S(n20)/N20 if N20 != 0 else 0.0
         s01_ = phi_L_s(n01)/N01 if N01 != 0 else 0.0
         s10_ = phi_L_s(n10)/N10 if N10 != 0 else 0.0
 
-        print( s01_* N01)
-        print( s10_* N10)
+        #calculate some of the numbers beforehand
         p2mu1 = cls.mu2 * cls.mu2 * math.pow(math.e,cls.mu1)
         p1mu2 = cls.mu1 * cls.mu1 * math.pow(math.e,cls.mu2)
         mu1mu2 = 2* cls.mu1 * cls.mu2 *(cls.mu2-cls.mu1) 
-        print("probabilities ------------------")
-        print(mu1mu2)
-        print(p2mu1)
-        print(p1mu2)
-        print(math.pow(math.e,-cls.mu2))
         s1 = 0
         if mu1mu2!= 0:
+            #calculate the lower bound for s1
             s1 = (p2mu1 * (s01_ + s10_) - p1mu2 * (_s02 + _s20)- 2*(cls.mu2*cls.mu2-cls.mu1*cls.mu1) *_s0) / (mu1mu2)
             print("this happened")
             print("s01 " + str(s01))
@@ -448,7 +470,9 @@ class Twinfield:
             print("n01: " + str(n01))
             print("N10: " + str(N10))
             print("N01: " + str(N01))
+        #this check is needed otherwise we get negative phase and n1 and that makes shenanigans. negative yield is baaaad
         if s1 > 0:
+            #calculate the phase error
             if N11pos == 0 or N11neg == 0:
                 T = 0
             else:
@@ -486,8 +510,12 @@ class Twinfield:
             print("---------------------------------------")
             print("warning! not enough decoy window data.")
             print("---------------------------------------")
-        
+
+    '''
+    this function handles the entire TF part of the post processing
+    '''
     def aftercomm(cls,alice_bits,bob_bits,measures,length,psi_AB,aopp_enabled = False):
+        #new implementation of the misalignment error, it was wrong before hand 
         if cls.loss_1 >= 0.0001:
             print(cls.loss_1)
             distance = (-10 * math.log10(cls.loss_1))/0.2
@@ -563,11 +591,12 @@ class Twinfield:
             cls.calc_ex(alice_bits,bob_bits,decoy_bits,psi_AB,aopp_enabled)
         else:
             print("there are no decoy bits lol!")
-
-  
-
         return alice_key, bob_key
-        
+
+
+    '''
+    simulates the physical part and saves it in a .npz file 
+    '''
     def tf_communicate(cls,alice_seed, bob_seed,length,path = "temp.npz"):
         alice_bits = cls.generate_random_Qbits(alice_seed,length)
         bob_bits = cls.generate_random_Qbits(bob_seed,length)
@@ -598,10 +627,17 @@ class Twinfield:
         #data = np.load("output.npz")
         #aftercomm(data["first"],data["second"],data["third"],data["fourth"])
 
+    '''
+    load the actual data. makes sense to be seperate from loading the parameters, as this can be used to iterate over them more easily
+    '''
     def tf_communicat_load(cls,path="temp.npz",aopp_enabled = False):
         data = np.load(path)
         return cls.aftercomm(data["first"],data["second"],data["third"],data["fourth"],data["fifth"],aopp_enabled=aopp_enabled)
+
     
+    '''
+    load the parameters    
+    '''
     def tf_communicate_load_settings(cls, path = "temp.npz"):
         data = np.load(path)
         cls.pd0 =data["sixth"][0]
@@ -618,12 +654,3 @@ class Twinfield:
         cls.loss_1=data["sixth"][11]
         cls.loss_2=data["sixth"][12]
         cls.phase_shift_average=data["sixth"][13]
-
-#tf_communicate(tf_utils.generate_seed(),tf_utils.generate_seed(),1000000,"decoy_signal_loss_2.npz")
-#twin = Twinfield()
-#twin.tf_communicat_load("decoy_signal_loss.npz")
-#print(generate_random_phaseShift(100))
-#tf_communicat_load("only_decoy.npz")
-#run_trial(0.1,0.1,0,0,0)
-
-#noise(generate_random_Qbits(generate_seed,10,0.5,0.5))

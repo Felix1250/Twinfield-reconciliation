@@ -1,14 +1,29 @@
+'''
+
+This file handles all the hashing and privacy amplification, as well es the security check after LDPC
+
+'''
+
+
+
 import numpy as np
 from scipy.signal import fftconvolve
 from scipy.linalg import toeplitz
 import random
 import math
 
+'''
+Scipy implementation of the convolution
+'''
 def get_hashed(key,seed,n,m):
     conv = fftconvolve(key, seed[::-1], mode='full')
     raw_sums = np.round(conv[n-1 : n-1 + m]).astype(np.int64)
     return (raw_sums % 2).astype(np.uint8)
 
+
+'''
+Security check after the error correction step.
+'''
 error =  math.pow(10,-20)
 def after_EC(alice_key: np.ndarray, bob_key: np.ndarray, seed: np.ndarray = np.empty(0, dtype=np.uint8)):
     if len(alice_key) != len(bob_key):
@@ -30,7 +45,9 @@ def after_EC(alice_key: np.ndarray, bob_key: np.ndarray, seed: np.ndarray = np.e
         return alice_key, bob_key
     return None,None
 
-
+'''
+determine the size of the toeplitz matrix
+'''
 def calc_m(length_key_before_reconciliation,e_ph,disclosed_info):
     if e_ph <= 0 or e_ph >= 1:
         H = 0
@@ -39,6 +56,10 @@ def calc_m(length_key_before_reconciliation,e_ph,disclosed_info):
     factor =   - math.log2(2/error) - 2 * math.log2( 1 / ( math.sqrt(2) * error * error))
     return max(math.ceil(length_key_before_reconciliation * (1-H) + factor)- disclosed_info,0)
 
+
+'''
+Toeplitz matrix creation and hashing
+'''
 def scipy_toeplitz_hash_with_matrix(alice_key: np.ndarray, bob_key: np.ndarray, m: int, seed: np.ndarray = np.empty(0, dtype=np.uint8)):
     if len(alice_key) != len(bob_key):
         raise ValueError("Alice and Bob keys must have the same length.")
@@ -57,6 +78,9 @@ def scipy_toeplitz_hash_with_matrix(alice_key: np.ndarray, bob_key: np.ndarray, 
     print("Match:", np.array_equal(alice_hash, bob_hash))
     return alice_hash, bob_hash
 
+'''
+This method combines all the steps needed to be taken
+'''
 def priv_ampl(alice_key: np.ndarray, bob_key: np.ndarray, eph:float,n_1:int,disclosed_info: int = 0):
     alice_key2,bob_key2  = after_EC(alice_key,bob_key)
     if alice_key is None:

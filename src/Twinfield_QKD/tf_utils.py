@@ -1,3 +1,9 @@
+'''
+contains some helper functions that are used in some of the files
+
+'''
+
+
 import matplotlib.pyplot as plt
 import numpy as np
 import random
@@ -165,7 +171,7 @@ def possoin_graph(mu = 2.1):
     ax.annotate('', xy=(1, 0), xycoords='axes fraction', xytext=(0, 0), textcoords='axes fraction',
             arrowprops=dict(facecolor='black', edgecolor='black', arrowstyle='->', lw=2, shrinkA=0, shrinkB=0))
 
-# 2. Up arrow for Y-axis (at the end of the left spine)
+    # 2. Up arrow for Y-axis (at the end of the left spine)
     ax.annotate('', xy=(0, 1), xycoords='axes fraction', xytext=(0, 0), textcoords='axes fraction',
             arrowprops=dict(facecolor='black', edgecolor='black', arrowstyle='->', lw=2, shrinkA=0, shrinkB=0))
     plt.xlabel("Photon count")

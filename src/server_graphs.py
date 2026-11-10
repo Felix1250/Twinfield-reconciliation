@@ -2,22 +2,9 @@
 from __future__ import annotations
 
 """
-run single-threaded simulations ("jobs") in parallel, one job per available CPU
-
-The simulations to run are defined in generate_jobs(),
-this generator yields (subclasses of) BaseJob which are wrappers that
-start the simulations to run as child processes.
-You probably want to create an own subclass of BaseJob for your particular
-simulation to customize the job name and the process to start.
-The only methods you should need to override are the constructor (duh!),
-name (defines the output directory of the job) and get_argv (what to execute).
-
-Each job is allocated one directory in the result_dir (see main function)
-named after it's name().
-This directory also contains the stdout, stderr and the exitcode of the run.
-
-If invoked with an existing result_dir, jobs that already ran successfully
-(recorded exitcode == 0) are skipped.
+This file contains the code for simulating all the graphs. first a bas class that handles the multiprocessing,
+then the functions that create the processes that do the physical communication
+then the function that define the post processing
 """
 
 from collections.abc import Generator
@@ -46,7 +33,10 @@ import math
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
+'''
+Inherits from phillips multiprocessing class
 
+'''
 class Twinfield_job(paralell.BaseJob):
     def __init__(
         self,
@@ -171,7 +161,7 @@ def generate_ea_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
 
 def generate_pzmu_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
     datapoints = 5
-    savefolder = os.getcwd() + "/saves/pzmu"
+    savefolder = os.getcwd() + "/saves/pzmu2"
     Path(savefolder).parent.mkdir(parents=True, exist_ok=True)
     for i in range(7):
         for j in range(5,7):
@@ -180,7 +170,8 @@ def generate_pzmu_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
                 base_path=base_path,
                 savefile=savefile,
                 mu=0.25 + j/20,
-                pz=1- (0.1+i/20)
+                pz=1- (0.1+i/20),
+                distance = 25
             )
     
 '''

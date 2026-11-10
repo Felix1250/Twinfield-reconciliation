@@ -1,3 +1,14 @@
+'''
+This file handles the overlapping parts of servergraphs.py, like physical communication
+also creates the csv and graph images if requested
+
+
+
+
+'''
+
+
+
 import math
 import os
 import numpy as np
@@ -17,6 +28,9 @@ import aopp
 import ldpc2
 import hashing
 
+'''
+physical part of the communcation
+'''
 def simulate_physics(path,pd = math.pow(10,-5) , eta  =0.8, ea = 0.15,distance = 0,pz = 1 - 0.269,mu = 0.422,length = 10000000):
     twin =twinfield_communication_tensorflow.Twinfield()
 
@@ -36,7 +50,9 @@ def simulate_physics(path,pd = math.pow(10,-5) , eta  =0.8, ea = 0.15,distance =
     length = int(length)
     twin.tf_communicate(tf_utils.generate_seed(),tf_utils.generate_seed(),length,path)
 
-
+'''
+simulates the post processing
+'''
 def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled = False, enable_twinfield=False):
     twin =twinfield_communication_tensorflow.Twinfield()
     twin.tf_communicate_load_settings(path)
@@ -62,6 +78,10 @@ def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled =
     key_rate = (len(alice_key))/twin._N_pulses
     return signal_length, error_rate , key_rate , comm_iters
 
+
+'''
+simulates the post processing, optimized for iterating over lambda or ea
+'''
 def simulate_comm_ea(path,ea,aopp_enabled = False,ldpc_enabled = False, hash_enabled = False, enable_twinfield=True,f=1.15,discl_k = 0.5,lam = None):
     twin =twinfield_communication_tensorflow.Twinfield()
     twin.tf_communicate_load_settings(path)
@@ -86,7 +106,9 @@ def simulate_comm_ea(path,ea,aopp_enabled = False,ldpc_enabled = False, hash_ena
     key_rate = (len(alice_key))/twin._N_pulses
     return signal_length, error_rate , key_rate , twin.T, twin._ephi
 
-
+'''
+simulates the post processing, optimized for iterating over LDPC parameters
+'''
 def simulate_comm_ldpc(path,ea,aopp_enabled = False,ldpc_enabled = False, hash_enabled = False,discl_k=0.5):
     twin =twinfield_communication_tensorflow.Twinfield()
     twin.tf_communicate_load_settings(path)
@@ -121,7 +143,9 @@ def simulate_comm_ldpc(path,ea,aopp_enabled = False,ldpc_enabled = False, hash_e
     return signal_length, error_rate , key_rate , comm_iters, fress,labels
 
 
-
+'''
+creates a csv that i read in typst
+'''
 def save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,ephi = None,fres = None,csv_savepath = "temp.csv"):
     data = []
     for i in range(len(key_rate)):
@@ -139,7 +163,9 @@ def save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,ephi = 
         writer = csv.writer(file)
         writer.writerows(data)
 
-
+'''
+creates a plot, unused
+'''
 def plot_general(key_rate, error_rate,labels,image_savepath,x_label = "",csv_savepath = "temp.csv"):
 
     data = []
@@ -177,6 +203,10 @@ def plot_general(key_rate, error_rate,labels,image_savepath,x_label = "",csv_sav
     plt.tight_layout()
     plt.savefig(image_savepath, dpi=300)
 
+
+'''
+needed for multi processing
+'''
 def main():
     parser = argparse.ArgumentParser(description="Run Twinfield QKD simulation and graph generation.")
     parser.add_argument("--savefile", type=str, required=True, help="Directory to save job outputs.")
