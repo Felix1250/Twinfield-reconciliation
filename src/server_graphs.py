@@ -325,7 +325,7 @@ def dist_general(things = 0,aopp_enabled = True,hash_enabled = True,ldpc_enabled
 def pzmu_rest(aopp_enabled = True,hash_enabled = True,ldpc_enabled = True):
     things = 0
     savefolder = os.getcwd() + "/saves/pzmu"
-    datapoints = 5
+    datapoints = 7
     for i in range(7):
         comm_iters = np.zeros(datapoints)
         key_rate = np.zeros(datapoints)
