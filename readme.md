@@ -10,7 +10,7 @@ I know that this is not really neat code, i am sorry for anyone reading this.
 ```
 git clone https://github.com/Felix1250/Twinfield-reconciliation.git
 cd Twinfield-reconciliation
-python -m venv venv
+python -m venv twin
 source twin/bin/activate
 pip install requirements.txt
 ```

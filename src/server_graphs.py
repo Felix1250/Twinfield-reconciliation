@@ -34,7 +34,7 @@ import math
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 '''
-Inherits from phillips multiprocessing class
+Inherits from philips multiprocessing class
 
 '''
 class Twinfield_job(paralell.BaseJob):
@@ -123,7 +123,7 @@ def generate_dist_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
             pd=math.pow(10, -5),
             eta=0.8,
             ea=0.15,
-            distance=i/datapoints*350, #max 350km one side so 700km total
+            distance=i*10, #max 350km one side so 700km total
             length = 100000000
         )
 
@@ -332,7 +332,7 @@ def pzmu_rest(aopp_enabled = True,hash_enabled = True,ldpc_enabled = True):
         signal_length = np.zeros(datapoints)
         error_rate = np.zeros(datapoints)
         labels = []
-        for j in range(datapoints):
+        for j in range(7):
             savefile =savefolder + "/_pz" + str(i) + "mu" + str(j) +".npz"
             labels.append(i*100+j)
             signal_length[j], error_rate[j], key_rate[j], comm_iters[j]=general_graphs.simulate_comm(savefile,aopp_enabled = aopp_enabled,ldpc_enabled = ldpc_enabled,hash_enabled = hash_enabled, enable_twinfield=True)
@@ -355,10 +355,10 @@ if __name__ == "__main__":
     #pd_rest_aopp()
     #dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 0)
     #dist_ldpc(enable_twinfield=False,aopp_enabled = True,hash_enabled = True,counter = 1)
-    #dist()
+    dist()
     #pd()
     #pzmu()
-    pzmu_rest()
+    #pzmu_rest()
 
     #
     #dist_ldpc(enable_twinfield = True)
