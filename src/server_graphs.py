@@ -163,8 +163,8 @@ def generate_pzmu_jobs(base_path: Path) -> Generator[paralell.BaseJob]:
     datapoints = 5
     savefolder = os.getcwd() + "/saves/pzmu2"
     Path(savefolder).parent.mkdir(parents=True, exist_ok=True)
-    for i in range(7):
-        for j in range(7):
+    for i in range(2,7):
+        for j in range(2,7):
             savefile = savefolder + "/_pz" + str(i) + "mu" + str(j) +".npz"
             yield Twinfield_job(
                 base_path=base_path,
