@@ -36,13 +36,13 @@ with prog2.context as p:
 
 
 eng = sf.Engine("fock", backend_options={"cutoff_dim": 10})
-eng2 = sf.Engine("tf", backend_options={"cutoff_dim": 5})
+eng2 = sf.Engine("tf", backend_options={"cutoff_dim": 2})
 
 
 print(math.sin(math.pi/2))
 
 
-alphas = np.full((10),0.422)
+alphas = np.full((1),0.422)
 
 result = eng.run(prog)
 result2 = eng.run(prog, args={
@@ -54,6 +54,7 @@ state2 = result2.state
 probs = state.all_fock_probs()
 probs2 = state2.all_fock_probs()
 
-#print(probs)
+print(probs)
+print(probs2)
 tf_utils.make_heatmap_array(np.array(probs), "figures/heatmap3_phase.png",4)
 tf_utils.make_heatmap_array(np.array(probs2), "figures/heatmap4_nophase.png",4)

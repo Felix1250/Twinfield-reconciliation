@@ -71,7 +71,7 @@ def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled =
             alice_key, bob_key,disclosed_info,comm_iters = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._esignal,qber_est_0 =twin.pd0,twinfield = False)
             print(alice_key)
     if hash_enabled:
-        alice_key, bob_key = hashing.priv_ampl(alice_key, bob_key, twin._ephi,twin._n1,disclosed_info = disclosed_info)
+        alice_key, bob_key = hashing.priv_ampl(alice_key, bob_key, twin._ephi,twin._n1,disclosed_info = disclosed_info + twin.signal_estimate_length)
     signal_length = len(alice_key)
     if len(alice_key) > 0:
         error_rate = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))        
@@ -99,7 +99,7 @@ def simulate_comm_ea(path,ea,aopp_enabled = False,ldpc_enabled = False, hash_ena
     if ldpc_enabled:
         alice_key, bob_key,disclosed_info,comm_iters = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._esignal,qber_est_0 =twin._eNN,twinfield = False,f_start = f,discl_k=discl_k)
     if hash_enabled:
-        alice_key, bob_key = hashing.priv_ampl(alice_key, bob_key, twin._ephi,twin._n1,disclosed_info = disclosed_info)
+        alice_key, bob_key = hashing.priv_ampl(alice_key, bob_key, twin._ephi,twin._n1,disclosed_info = disclosed_info + twin.signal_estimate_length)
     signal_length = len(alice_key)
     if len(alice_key) > 0:
         error_rate = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))        
@@ -129,7 +129,7 @@ def simulate_comm_ldpc(path,ea,aopp_enabled = False,ldpc_enabled = False, hash_e
         if ldpc_enabled:
             alice_key_2, bob_key_2,disclosed_info,comm_iters_2, fres = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._esignal,qber_est_0 =twin._eNN,twinfield = False,f_start = f,discl_k=discl_k,return_f=True)
         if hash_enabled:
-            alice_key_2, bob_key_2 = hashing.priv_ampl(alice_key_2, bob_key_2, twin._ephi,twin._n1,disclosed_info = disclosed_info)
+            alice_key_2, bob_key_2 = hashing.priv_ampl(alice_key_2, bob_key_2, twin._ephi,twin._n1,disclosed_info = disclosed_info + twin.signal_estimate_length)
         signal_length_2 = len(alice_key_2)
         if len(alice_key_2) > 0:
             error_rate_2 = np.mean(np.abs(alice_key_2.astype(int) - bob_key_2.astype(int))) 

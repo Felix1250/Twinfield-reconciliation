@@ -154,6 +154,8 @@ class Twinfield:
     _decoy_length = 0
     T=0
     n_error = 0
+
+    signal_estimate_length = 0
     
     _error_number = 0
     _signal_length = 0
@@ -293,6 +295,7 @@ class Twinfield:
         cls._esignal = (counter_NN + counter_SS) / n
         cls._eNN = (counter_NN ) / n
         cls._eSS = (counter_SS ) / n
+        cls.signal_estimate_length = n
         print("Error rate of subset: " + str(cls._esignal))
         print("---------------------------------------")
         return alice_key[arr],bob_key[arr]
@@ -477,6 +480,7 @@ class Twinfield:
                 T = 0
             else:
                 T= 1/2 * (n11pos / N11pos + n11neg / N11neg) 
+                T = phi_U_S(T *(N11neg + N11pos))/(N11neg + N11pos) if (N11neg + N11pos) != 0 else 0
             cls.n_error =n11pos + n11neg
             print("T " + str(T))
             cls.T = T
@@ -584,7 +588,7 @@ class Twinfield:
             cls.n_percentage = 0.01
         else:
             cls.n_percentage = 0.01
-        n = max(math.floor(0.2*len(alice_key)), math.floor(len(alice_key)*cls.n_percentage))
+        n = max(math.floor(0.1*len(alice_key)), math.floor(len(alice_key)*cls.n_percentage))
         alice_key,bob_key = cls.calc_ez(alice_key,bob_key,n,counter_signal_window)
         # analyze the decoy window
         if len(decoy_bits) > 0:
