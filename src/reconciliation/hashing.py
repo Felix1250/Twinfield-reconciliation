@@ -30,7 +30,7 @@ def after_EC(alice_key: np.ndarray, bob_key: np.ndarray, seed: np.ndarray = np.e
         raise ValueError("Alice and Bob keys must have the same length.")
     m = math.ceil(math.log2(1/error))
     if seed.size == 0:
-        seed = np.random.randint(0, 2, size=alice_key.size + m - 1, dtype=np.uint8)
+        seed = np.random.randint(0, 2, size=len(alice_key) + m - 1, dtype=np.uint8)
 
     n = len(alice_key)
     p = n + m - 1
@@ -66,7 +66,7 @@ def scipy_toeplitz_hash_with_matrix(alice_key: np.ndarray, bob_key: np.ndarray, 
     if m == 0:
         return [],[]
     if seed.size == 0:
-        seed = np.random.randint(0, 2, size=alice_key.size + m - 1, dtype=np.uint8)
+        seed = np.random.randint(0, 2, size=len(alice_key) + m - 1, dtype=np.uint8)
     
     n = len(alice_key)
     p = n + m - 1
