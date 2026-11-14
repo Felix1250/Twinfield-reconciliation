@@ -1,3 +1,9 @@
+'''
+only file that i wrote on my own, handles the entire LDPC pipeline. it is a bit frankensteined together out of the example given in the code
+
+'''
+
+
 import error_correction_lib as ec
 import numpy as np
 from file_utils import codes_from_file
@@ -6,7 +12,9 @@ import os
 
 
 
-
+'''
+old fucntion, where i tried to decide which code to use
+'''
 def determine_codes_and_length(key):
     length_key = len(key)
     n_1 =length_key % 1944.0 #math.modf(length_key,1944.0)
@@ -16,12 +24,17 @@ def determine_codes_and_length(key):
         return 1944, codes_from_file(cw_path + "/src/reconciliation/QKD_LDPC_python/codes_1944.txt") 
     return 4000, codes_from_file(cw_path + "/src/reconciliation/QKD_LDPC_python/codes_4000.txt") 
 
-
+'''
+shannon entropy
+'''
 def shannon(p):
     if p <= 0.0 or p >= 1.0:
         return 0.0
     return  -p * math.log2(p) - (1-p) * math.log2(1-p)
 
+'''
+old fucntion, where i tried to decide which parameters to use
+'''
 def calc_params(k,n,R_range,qber):
     s,p =0
     Rate = 1 - shannon(qber)
@@ -34,7 +47,7 @@ def calc_params(k,n,R_range,qber):
 
 
 def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True,felix_impl =False,f_start = 1.09,discl_k = 0.75,return_f = False):
-    if qber_est == 0:
+    if qber_est == 0: #saveguards
         qber_est = 0.0000001
     if len(correct_key) == 0 or qber_est >0.4999:
         return correct_key,faulty_key, 0, 0
@@ -110,20 +123,20 @@ def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True
             faulty_chunk, correct_chunk, s_y_joins, y_s_joins, qber_est,qber_est_0, s_n, p_n, 
             punct_list=punct_list, discl_n=discl_n, show=1,twinfield=twinfield
         )
-        this_iteration_disclosed =  math.ceil((syndrome_length +add_info ) * len(faulty_chunk)/payload_per_block)
+        this_iteration_disclosed =  math.ceil((syndrome_length +add_info ) * len(faulty_chunk)/payload_per_block) #how much disclosed
         disclosed_info += this_iteration_disclosed
         com_iters_counter += com_iters
 
-        f_cur = float(syndrome_length-p_n+add_info)/(n-p_n-s_n)/ec.h_b(qber_est)
+        f_cur = float(syndrome_length-p_n+add_info)/(n-p_n-s_n)/ec.h_b(qber_est) #calculate f
         f_rslt.append(f_cur)
-
+        #correct the keys
         error_map = np.asarray(dec_chunk, dtype=np.uint8)
-        faulty_chunk = np.asarray(faulty_chunk, dtype=np.uint8)
+        faulty_chunk = np.asarray(faulty_chunk, dtype=np.uint8) 
         correct_chunks.append(np.asarray(correct_chunk, dtype=np.uint8))
         corrected_chunks.append(np.bitwise_xor(faulty_chunk,error_map))
 
     corrected_key = np.concatenate(corrected_chunks)
-    correct_key = np.concatenate(correct_chunks)
+    #correct_key = np.concatenate(correct_chunks)
     remaining_errors = np.abs(corrected_key.astype(int) - correct_key.astype(int))
     print("Total remaining errors: " + str(np.sum(remaining_errors)))
     print("remaining errorrate: " + str(np.mean(remaining_errors)))
