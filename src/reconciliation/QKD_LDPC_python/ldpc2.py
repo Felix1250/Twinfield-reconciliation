@@ -50,6 +50,7 @@ def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True
     if qber_est == 0: #saveguards
         qber_est = 0.0000001
     if len(correct_key) == 0 or qber_est >0.4999:
+        print("thisis where we are")
         return correct_key,faulty_key, 0, 0
     #this loades a code from teh ieee codes with a length of 1944
 
@@ -136,7 +137,7 @@ def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True
         corrected_chunks.append(np.bitwise_xor(faulty_chunk,error_map))
 
     corrected_key = np.concatenate(corrected_chunks)
-    #correct_key = np.concatenate(correct_chunks)
+    correct_key = np.concatenate(correct_chunks)
     remaining_errors = np.abs(corrected_key.astype(int) - correct_key.astype(int))
     print("Total remaining errors: " + str(np.sum(remaining_errors)))
     print("remaining errorrate: " + str(np.mean(remaining_errors)))
