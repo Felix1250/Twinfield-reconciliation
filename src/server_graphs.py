@@ -351,10 +351,10 @@ if __name__ == "__main__":
     #ldpc_rest(1)
     #lambda_rest()
     #ea_rest()
-    pd_rest()
-    pd_rest_aopp()
-    dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 0)
-    dist_ldpc(enable_twinfield=False,aopp_enabled = True,hash_enabled = True,counter = 1)
+    #pd_rest()
+    #pd_rest_aopp()
+    #dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 0)
+    #dist_ldpc(enable_twinfield=False,aopp_enabled = True,hash_enabled = True,counter = 1)
     #dist()
     #pd()
     #pzmu()
@@ -364,3 +364,13 @@ if __name__ == "__main__":
     #dist_ldpc(enable_twinfield = True)
     #dist_ldpc(enable_twinfield = False)
     #pzmu_rest()
+    a = True
+    #a = False
+    if a:
+        pd_rest()
+        pd_rest_aopp()
+        dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 0)
+        dist_ldpc(enable_twinfield=False,aopp_enabled = True,hash_enabled = True,counter = 1)
+        pzmu_rest()
+        eta_rest()
+        ea_rest()
