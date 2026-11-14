@@ -81,8 +81,8 @@ def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True
         R = R_min
     else:
         cw_path = os.getcwd()
-        codes = codes_from_file(cw_path + "/src/reconciliation/QKD_LDPC_python/codes_4000.txt") 
-        n = 4000
+        codes = codes_from_file(cw_path + "/src/reconciliation/QKD_LDPC_python/codes_1944.txt") 
+        n = 1944
 
         # Computing the range of rates for given codes
         R_range = []
@@ -117,8 +117,10 @@ def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True
     f_rslt = []
     for faulty_chunk, correct_chunk in zip(faulty_blocks, correct_blocks):
         # If the last chunk is smaller, more shortened bits
+        a = True
         if len(faulty_chunk) < payload_per_block:
             p_n = 0
+            a = False
             s_n = n-len(faulty_chunk)
         add_info, com_iters, dec_chunk, ver_check = ec.perform_ec(
             faulty_chunk, correct_chunk, s_y_joins, y_s_joins, qber_est,qber_est_0, s_n, p_n, 
@@ -127,9 +129,9 @@ def ldpc1(correct_key,faulty_key,qber_est = 0.21,qber_est_0 = 0.0,twinfield=True
         this_iteration_disclosed =  math.ceil((syndrome_length +add_info ) * len(faulty_chunk)/payload_per_block) #how much disclosed
         disclosed_info += this_iteration_disclosed
         com_iters_counter += com_iters
-
-        f_cur = float(syndrome_length-p_n+add_info)/(n-p_n-s_n)/ec.h_b(qber_est) #calculate f
-        f_rslt.append(f_cur)
+        if a:
+            f_cur = float(syndrome_length-p_n+add_info)/(n-p_n-s_n)/ec.h_b(qber_est) #calculate f
+            f_rslt.append(f_cur)
         #correct the keys
         error_map = np.asarray(dec_chunk, dtype=np.uint8)
         faulty_chunk = np.asarray(faulty_chunk, dtype=np.uint8) 

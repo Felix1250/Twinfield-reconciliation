@@ -374,3 +374,7 @@ if __name__ == "__main__":
         pzmu_rest()
         eta_rest()
         ea_rest()
+        ldpc_rest(0.25)
+        ldpc_rest(0.5)
+        ldpc_rest(0.75)
+        ldpc_rest(1)
