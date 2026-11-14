@@ -67,12 +67,12 @@ def simulate_comm(path,aopp_enabled = False,ldpc_enabled = False, hash_enabled =
     print("alice_key: " + str(alice_key))
     if ldpc_enabled:
         if enable_twinfield:
-            alice_key, bob_key,disclosed_info,comm_iters = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._esignal,qber_est_0 =twin.pd0,twinfield = True)
+            alice_key_2, bob_key_2,disclosed_info,comm_iters = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._esignal,qber_est_0 =twin.pd0,twinfield = True)
         else:
-            alice_key, bob_key,disclosed_info,comm_iters = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._esignal,qber_est_0 =twin.pd0,twinfield = False)
+            alice_key_2, bob_key_2,disclosed_info,comm_iters = ldpc2.ldpc1(alice_key, bob_key, qber_est = twin._esignal,qber_est_0 =twin.pd0,twinfield = False)
         print("alice_key: " + str(alice_key))
     if hash_enabled:
-        alice_key, bob_key = hashing.priv_ampl(alice_key, bob_key, twin._ephi,twin._n1,disclosed_info = disclosed_info + twin.signal_estimate_length)
+        alice_key, bob_key = hashing.priv_ampl(alice_key_2, bob_key_2, twin._ephi,twin._n1,disclosed_info = disclosed_info + twin.signal_estimate_length)
     signal_length = len(alice_key)
     if len(alice_key) > 0:
         error_rate = np.mean(np.abs(alice_key.astype(int) - bob_key.astype(int)))        
