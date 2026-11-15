@@ -224,7 +224,7 @@ def pd_rest():
         savefile = savefolder + "/_pd" + str(i) + ".npz"
         labels.append(f"$10^{{-{i}}}$")
         signal_length[i], error_rate[i] , key_rate[i] , comm_iters[i]=general_graphs.simulate_comm(savefile,aopp_enabled = True,ldpc_enabled = True, hash_enabled=True,enable_twinfield=False)
-    general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/pd2_"  + ".csv")
+    general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/pd2_non"  + ".csv")
 
 def pd_rest_aopp():
     savefolder = os.getcwd() + "/saves/pd"
@@ -238,7 +238,7 @@ def pd_rest_aopp():
         savefile = savefolder + "/_pd" + str(i) + ".npz"
         labels.append(f"$10^{{-{i}}}$")
         signal_length[i], error_rate[i] , key_rate[i] , comm_iters[i]=general_graphs.simulate_comm(savefile,aopp_enabled=True)
-    general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/pd2_"  + ".csv")
+    general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/pd2_aopp"  + ".csv")
         
 def eta_rest():
     savefolder = os.getcwd() + "/saves/eta"
@@ -294,7 +294,7 @@ def ldpc_rest(discl_k):
 
 def dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 0):
     savefolder = os.getcwd() + "/saves/dist2"
-    datapoints = 44
+    datapoints = 30
     comm_iters = np.zeros(datapoints)
     key_rate = np.zeros(datapoints)
     signal_length = np.zeros(datapoints)

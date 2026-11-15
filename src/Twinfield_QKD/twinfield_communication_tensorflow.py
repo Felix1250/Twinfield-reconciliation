@@ -638,6 +638,14 @@ class Twinfield:
         data = np.load(path)
         return cls.aftercomm(data["first"],data["second"],data["third"],data["fourth"],data["fifth"],aopp_enabled=aopp_enabled)
 
+    def tf_communicat_load2(cls,path="temp.npz",aopp_enabled = False):
+        data = np.load(path)
+        first  = np.concatenate([data["first"]] * 10)
+        second = np.concatenate([data["second"]] * 10)
+        third  = np.concatenate([data["third"]] * 10)
+        fourth = np.concatenate([data["fourth"]] * 10)
+        fifth  = np.concatenate([data["fifth"]] * 10)
+        return cls.aftercomm(first, second, third, fourth, fifth,aopp_enabled=aopp_enabled)
     
     '''
     load the parameters    
