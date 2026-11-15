@@ -640,10 +640,10 @@ class Twinfield:
 
     def tf_communicat_load2(cls,path="temp.npz",aopp_enabled = False):
         data = np.load(path)
-        first  = np.concatenate([data["first"]] * 10)
-        second = np.concatenate([data["second"]] * 10)
+        first  = [np.concatenate([arr] * 10) for arr in data["first"]]
+        second = [np.concatenate([arr] * 10) for arr in data["second"]]
         third  = np.concatenate([data["third"]] * 10)
-        fourth = np.concatenate([data["fourth"]] * 10)
+        fourth = data[fourth] * 10
         fifth  = np.concatenate([data["fifth"]] * 10)
         return cls.aftercomm(first, second, third, fourth, fifth,aopp_enabled=aopp_enabled)
     
