@@ -212,8 +212,8 @@ All the aftercomm stuff + either making graphs out of it or just saving it in cs
 '''
 
 def pd_rest():
-    savefolder = os.getcwd() + "/saves/pd2"
-    datapoints = 6
+    savefolder = os.getcwd() + "/saves/pd"
+    datapoints = 20
     comm_iters = np.zeros(datapoints)
     key_rate = np.zeros(datapoints)
     signal_length = np.zeros(datapoints)
@@ -228,7 +228,7 @@ def pd_rest():
 
 def pd_rest_aopp():
     savefolder = os.getcwd() + "/saves/pd"
-    datapoints =6
+    datapoints =20
     comm_iters = np.zeros(datapoints)
     key_rate = np.zeros(datapoints)
     signal_length = np.zeros(datapoints)
@@ -262,7 +262,7 @@ def ea_rest():
     labels = []
     for i in range(datapoints):
         savefile = savefolder + "/_pd" + str(5) + ".npz"
-        ea = i/ (datapoints ) * (0.06)
+        ea = i/ (datapoints ) * (0.5)
         labels.append(f"{ea:.2f}")
         signal_length[i], error_rate[i], key_rate[i], comm_iters[i],ephi[i]=general_graphs.simulate_comm_ea(savefile,ea,aopp_enabled = True,ldpc_enabled = True, enable_twinfield=True,hash_enabled=True)
     general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,ephi=ephi,csv_savepath = os.getcwd() + "/figures/my_graph/ea_phi3.csv")
@@ -349,23 +349,22 @@ if __name__ == "__main__":
     #ldpc_rest(0.5)
     #ldpc_rest(0.75)
     #ldpc_rest(1)
-    #lambda_rest()
-    #ea_rest()
-    #pd_rest()
-    #pd_rest_aopp()
+    lambda_rest()
+    ea_rest()
+    pd_rest()
+    pd_rest_aopp()
     #dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 0)
     #dist_ldpc(enable_twinfield=False,aopp_enabled = True,hash_enabled = True,counter = 1)
     #dist()
     #pd()
     #pzmu()
     #pzmu_rest()
-
     #
     #dist_ldpc(enable_twinfield = True)
     #dist_ldpc(enable_twinfield = False)
     #pzmu_rest()
-    a = True
-    #a = False
+    #a = True
+    a = False
     if a:
         pd_rest()
         pd_rest_aopp()
