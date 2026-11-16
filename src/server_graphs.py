@@ -264,7 +264,7 @@ def ea_rest():
         savefile = savefolder + "/_pd" + str(5) + ".npz"
         ea = i/ (datapoints ) * (0.5)
         labels.append(f"{ea:.2f}")
-        signal_length[i], error_rate[i], key_rate[i], comm_iters[i],ephi[i]=general_graphs.simulate_comm_ea(savefile,ea,aopp_enabled = True,ldpc_enabled = True, enable_twinfield=True,hash_enabled=True)
+        signal_length[i], error_rate[i], key_rate[i], comm_iters[i],ephi[i]=general_graphs.simulate_comm_ea(savefile,ea,aopp_enabled = True,ldpc_enabled = True, enable_twinfield=False,hash_enabled=True)
     general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,ephi=ephi,csv_savepath = os.getcwd() + "/figures/my_graph/ea_phi3.csv")
 
 def lambda_rest():
@@ -281,7 +281,7 @@ def lambda_rest():
         ea = 0.012
         lam = i/100*5 + 0.05
         labels.append(f"{lam:.2f}")
-        signal_length[i], error_rate[i], key_rate[i], comm_iters[i],ephi[i]=general_graphs.simulate_comm_ea(savefile,ea,aopp_enabled = True,ldpc_enabled = True, enable_twinfield=True,hash_enabled=True,lam = lam)
+        signal_length[i], error_rate[i], key_rate[i], comm_iters[i],ephi[i]=general_graphs.simulate_comm_ea(savefile,ea,aopp_enabled = True,ldpc_enabled = True, enable_twinfield=False,hash_enabled=True,lam = lam)
     general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,ephi=ephi,csv_savepath = os.getcwd() + "/figures/my_graph/lambda2.csv")
 
 def ldpc_rest(discl_k):
@@ -292,7 +292,7 @@ def ldpc_rest(discl_k):
     signal_length, error_rate, key_rate, comm_iters,f,labels =general_graphs.simulate_comm_ldpc(savefile,ea,aopp_enabled = True,ldpc_enabled = True,hash_enabled=True,discl_k=discl_k)
     general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,fres = f,csv_savepath = os.getcwd() + "/figures/my_graph/ldpc2_" + str(discl_k)+".csv")
 
-def dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 0):
+def dist_ldpc(enable_twinfield=False,aopp_enabled = False,hash_enabled = True,counter = 0):
     savefolder = os.getcwd() + "/saves/dist2"
     datapoints = 30
     comm_iters = np.zeros(datapoints)
@@ -304,7 +304,7 @@ def dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,cou
         savefile = savefolder + "/_dist" + str(i) + ".npz"
         labels.append(i/50*700)
         signal_length[i], error_rate[i], key_rate[i], comm_iters[i]=general_graphs.simulate_comm(savefile,aopp_enabled = aopp_enabled,ldpc_enabled = True, enable_twinfield=enable_twinfield,hash_enabled=hash_enabled)
-    general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/dist_" + str(enable_twinfield) +"_" + str(counter)+ ".csv")
+    general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/dist1_" + str(enable_twinfield) +"_" + str(counter)+ ".csv")
 
 
 
@@ -335,9 +335,9 @@ def pzmu_rest(aopp_enabled = True,hash_enabled = True,ldpc_enabled = True):
         for j in range(7):
             savefile =savefolder + "/_pz" + str(i) + "mu" + str(j) +".npz"
             labels.append(i*100+j)
-            signal_length[j], error_rate[j], key_rate[j], comm_iters[j]=general_graphs.simulate_comm(savefile,aopp_enabled = aopp_enabled,ldpc_enabled = ldpc_enabled,hash_enabled = hash_enabled, enable_twinfield=True)
+            signal_length[j], error_rate[j], key_rate[j], comm_iters[j]=general_graphs.simulate_comm(savefile,aopp_enabled = aopp_enabled,ldpc_enabled = ldpc_enabled,hash_enabled = hash_enabled, enable_twinfield=not aopp_enabled)
         things += 1
-        general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/pzmu_noaopp" + str(things) + ".csv")
+        general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/pzmu_noaopp" + str(aopp_enabled) + ".csv")
 
 
 
@@ -350,15 +350,16 @@ if __name__ == "__main__":
     #ldpc_rest(0.75)
     #ldpc_rest(1)
     #lambda_rest()
-    #ea_rest()
+    ea_rest()
     #pd_rest()
+    pzmu_rest(aopp_enabled=False)
+    pzmu_rest(aopp_enabled=True)
     #pd_rest_aopp()
     dist_ldpc(enable_twinfield=True,aopp_enabled = False,hash_enabled = True,counter = 0)
     dist_ldpc(enable_twinfield=False,aopp_enabled = True,hash_enabled = True,counter = 1)
     #dist()
     #pd()
     #pzmu()
-    pzmu_rest(aopp_enabled=False)
     #
     #dist_ldpc(enable_twinfield = True)
     #dist_ldpc(enable_twinfield = False)
