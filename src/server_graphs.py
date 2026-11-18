@@ -337,7 +337,7 @@ def pzmu_rest(aopp_enabled = True,hash_enabled = True,ldpc_enabled = True):
             labels.append(i*100+j)
             signal_length[j], error_rate[j], key_rate[j], comm_iters[j]=general_graphs.simulate_comm(savefile,aopp_enabled = aopp_enabled,ldpc_enabled = ldpc_enabled,hash_enabled = hash_enabled, enable_twinfield=not aopp_enabled)
         things += 1
-        general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/pzmu_noaopp" + str(aopp_enabled) + ".csv")
+        general_graphs.save_as_csv(signal_length, error_rate , key_rate , comm_iters,labels,csv_savepath = os.getcwd() + "/figures/my_graph/pzmu_noaopp" + str(things) + str(aopp_enabled) + ".csv")
 
 
 

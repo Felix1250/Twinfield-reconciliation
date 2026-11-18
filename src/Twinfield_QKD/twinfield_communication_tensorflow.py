@@ -479,7 +479,7 @@ class Twinfield:
             if N11pos == 0 or N11neg == 0:
                 T = 0
             else:
-                T= cls.s_phaseSlice/(2*math.pi) * (n11pos / N11pos + n11neg / N11neg) 
+                T= 1/(2 *cls.s_phaseSlice) * ((n11pos + n11neg) / (N11neg +N11pos )) 
                 T = phi_U_S(T *(N11neg + N11pos))/(N11neg + N11pos) if (N11neg + N11pos) != 0 else 0
             cls.n_error =n11pos + n11neg
             print("T " + str(T))
